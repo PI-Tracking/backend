@@ -13,5 +13,6 @@ public class CreateUserDTO {
     private String cc;
     private String email;
     private String username;
+    @Builder.Default
     private boolean isAdmin = false;
 }

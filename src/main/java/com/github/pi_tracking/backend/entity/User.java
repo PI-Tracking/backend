@@ -25,11 +25,12 @@ import java.util.List;
 @Entity
 public class User implements UserDetails {
     @Id
-    @Pattern(regexp = "[0-9]{8} ?([0-9][A-Z]{2}[0-9])?")
+    @Pattern(regexp = "[0-9]{8}")
     private String cc;
-    @Column(updatable  = true, nullable = false)
+    @Column(nullable = false)
+    @Pattern(regexp = "/^[a-z0-9.]+@[a-z0-9]+\\.[a-z]+\\.([a-z]+)?$/i")
     private String email;
-    @Column(updatable  = true, nullable = false)
+    @Column(updatable = false, nullable = false)
     private String username;
     @Column(nullable = false)
     @JsonIgnore

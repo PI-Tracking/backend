@@ -12,12 +12,9 @@ import com.github.pi_tracking.backend.utils.StringUtils;
 
 @Service
 public class AuthService {
-
-
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-
 
     public AuthService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JWTService jwtService) {
         this.userRepository = userRepository;
@@ -38,7 +35,7 @@ public class AuthService {
                 .isAdmin(dto.isAdmin())
                 .build();
 
-        user = userRepository.save(user);
+        userRepository.save(user);
 
         return LoginDTO
                 .builder()

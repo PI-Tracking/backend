@@ -27,7 +27,6 @@ public class LoginController {
         this.jwtService = jwtService;
     }
 
-
     @PostMapping("/login")
     public ResponseEntity<User> login(
             @Valid @RequestBody final LoginDTO dto, HttpServletResponse response) throws Exception {
