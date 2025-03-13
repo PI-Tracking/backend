@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -39,4 +40,7 @@ public class Camera {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime addedAt;
+
+    @OneToMany(mappedBy = "camera", cascade = CascadeType.DETACH)
+    private List<Upload> uploads;
 }
