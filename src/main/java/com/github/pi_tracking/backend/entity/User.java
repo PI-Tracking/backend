@@ -25,8 +25,7 @@ import java.util.List;
 @Entity
 public class User implements UserDetails {
     @Id
-    @Pattern(regexp = "[0-9]{8}")
-    private String cc;
+    private String badgeId;
     @Column(nullable = false)
     @Pattern(regexp = "/^[a-z0-9.]+@[a-z0-9]+\\.[a-z]+\\.([a-z]+)?$/i")
     private String email;
@@ -53,7 +52,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return active;
     }
 
     @Override

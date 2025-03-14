@@ -19,7 +19,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import java.io.IOException;
 
 @Component
-public class JWTAuthenticationFilter extends OncePerRequestFilter {
+public class JWTAuthenticationFilter extends OncePerRequestFilter{
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final JWTService jwtService;
     private final UserDetailsService userDetailsService;
@@ -33,7 +33,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
         this.handlerExceptionResolver = handlerExceptionResolver;
     }
-
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,

@@ -30,6 +30,7 @@ public class ApplicationConfig {
         return new BCryptPasswordEncoder();
     }
 
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
@@ -44,4 +45,6 @@ public class ApplicationConfig {
 
         return authProvider;
     }
+
+
 }

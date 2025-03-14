@@ -22,6 +22,7 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
+
     public LoginDTO createUser(CreateUserDTO dto) throws Exception {
         String username = dto.getUsername();
         String password = StringUtils.generateRandomString(16);
@@ -30,7 +31,7 @@ public class AuthService {
                 .builder()
                 .username(username)
                 .password(passwordEncoder.encode(password))
-                .cc(dto.getCc())
+                .badgeId(dto.getBadgeId())
                 .email(dto.getEmail())
                 .isAdmin(dto.isAdmin())
                 .build();

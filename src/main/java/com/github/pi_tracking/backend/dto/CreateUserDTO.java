@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class CreateUserDTO {
-    private String cc;
+    private String badgeId;
     private String email;
     private String username;
     @Builder.Default
