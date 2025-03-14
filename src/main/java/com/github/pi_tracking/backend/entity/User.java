@@ -1,5 +1,6 @@
 package com.github.pi_tracking.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
@@ -41,7 +42,8 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean active = true;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.DETACH)
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.DETACH)
+    @JsonBackReference
     private List<Report> reports;
 
     @Override

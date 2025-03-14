@@ -1,5 +1,6 @@
 package com.github.pi_tracking.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -42,5 +43,6 @@ public class Camera {
     private LocalDateTime addedAt;
 
     @OneToMany(mappedBy = "camera", cascade = CascadeType.DETACH)
+    @JsonBackReference
     private List<Upload> uploads;
 }
