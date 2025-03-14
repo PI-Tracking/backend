@@ -25,6 +25,9 @@ public class AuthService {
 
     public LoginDTO createUser(CreateUserDTO dto) throws Exception {
         String username = dto.getUsername();
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("A user with that name already exists!");
+        }
         String password = StringUtils.generateRandomString(16);
 
         User user = User

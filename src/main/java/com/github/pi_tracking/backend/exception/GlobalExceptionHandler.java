@@ -84,6 +84,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleSecurityException(Exception exception) {
         ProblemDetail errorDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), exception.getMessage());
         errorDetail.setProperty("description", "Unknown internal server error.");
+        exception.printStackTrace();
 
         return errorDetail;
     }

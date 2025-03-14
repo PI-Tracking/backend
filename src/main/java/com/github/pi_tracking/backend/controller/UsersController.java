@@ -25,18 +25,15 @@ public class UsersController {
     }
 
     @PostMapping
-    @PreAuthorize("#isAdmin == authentication.principal.isAdmin")
     public ResponseEntity<LoginDTO> createUser(@RequestBody @Valid CreateUserDTO dto) throws Exception {
         LoginDTO login = authService.createUser(dto);
         return new ResponseEntity<>(login, HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("#isAdmin == authentication.principal.isAdmin")
     public ResponseEntity<List<User>> getAllUsers() {return ResponseEntity.ok(usersService.getAllUsers());}
 
     @GetMapping("/{badgeId}")
-    @PreAuthorize("#isAdmin == authentication.principal.isAdmin")
     public ResponseEntity<User> getUserByBadgeId(@PathVariable("badgeId") String badgeId) {
         User user = usersService.getUserByBadgeId(badgeId);
         if (user == null) {
@@ -46,7 +43,6 @@ public class UsersController {
     }
 
     @PatchMapping("/{badgeId}/toggle-active")
-    @PreAuthorize("#isAdmin == authentication.principal.isAdmin")
     public ResponseEntity<?> toggleActive(@PathVariable("badgeId") String badgeId) {
         User user = usersService.getUserByBadgeId(badgeId);
         if (user == null) {
