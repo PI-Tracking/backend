@@ -23,11 +23,17 @@ public class AuthService {
     }
 
 
-    public LoginDTO createUser(CreateUserDTO dto) throws Exception {
+    public LoginDTO createUser(CreateUserDTO dto) {
+        String badgeId = dto.getBadgeId();
+        if (userRepository.existsByBadgeId(badgeId)) {
+            throw new IllegalArgumentException("A user with that badge id already exists!");
+        }
+
         String username = dto.getUsername();
         if (userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("A user with that name already exists!");
         }
+
         String password = StringUtils.generateRandomString(16);
 
         User user = User

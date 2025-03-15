@@ -25,16 +25,20 @@ import java.util.List;
 public class User implements UserDetails {
     @Id
     private String badgeId;
+
     @Column(nullable = false)
     private String email;
-    @Column(updatable = false, nullable = false)
+
+    @Column(updatable = false, nullable = false, unique = true)
     private String username;
+
     @Column(nullable = false)
     @JsonIgnore
     private String password;
 
     @Builder.Default
     private boolean isAdmin = false;
+
     @Builder.Default
     private boolean active = true;
 
@@ -50,7 +54,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return active;
+        return true;
     }
 
     @Override
@@ -60,7 +64,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
 
 }

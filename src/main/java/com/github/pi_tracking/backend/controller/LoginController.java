@@ -30,7 +30,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<User> login(
-            @Valid @RequestBody final LoginDTO dto, HttpServletResponse response) throws Exception {
+            @Valid @RequestBody final LoginDTO dto, HttpServletResponse response) {
         User user = authService.authenticate(dto);
         String jwtToken = jwtService.generateToken(user);
 
