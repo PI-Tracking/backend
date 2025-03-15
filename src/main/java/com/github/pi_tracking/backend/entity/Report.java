@@ -1,7 +1,7 @@
 package com.github.pi_tracking.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -28,7 +28,7 @@ public class Report {
     private String name;
 
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL)
-    @JsonManagedReference(value = "report-uploads")
+    @JsonIgnore
     private List<Upload> uploads;
 
     @ManyToOne
