@@ -40,8 +40,8 @@ public class ReportController {
     }
 
     @GetMapping("/{reportId}")
-    public ResponseEntity<Report> getReportById(@PathVariable UUID reportId) {
-        Report report = reportService.getReportById(reportId);
+    public ResponseEntity<ReportResponseDTO> getReportById(@PathVariable UUID reportId) throws Exception {
+        ReportResponseDTO report = reportService.getReportById(reportId);
 
         if (report == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

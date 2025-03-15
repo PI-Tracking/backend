@@ -9,10 +9,7 @@ import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.repository.CamerasRepository;
 import com.github.pi_tracking.backend.repository.ReportRepository;
 import com.github.pi_tracking.backend.repository.UploadRepository;
-import io.minio.BucketExistsArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
+import io.minio.*;
 import io.minio.http.Method;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +49,19 @@ public class ReportService {
             if (!found) {
                 minioClient.makeBucket(MakeBucketArgs.builder()
                         .bucket(bucketName).build());
+
+                String policy = "{"
+                        + "\"Version\":\"2012-10-17\","
+                        + "\"Statement\":[{"
+                        + "\"Effect\":\"Allow\","
+                        + "\"Principal\":\"*\","
+                        + "\"Action\":\"s3:GetObject\","
+                        + "\"Resource\":\"arn:aws:s3:::" + bucketName + "/*\""
+                        + "}]"
+                        + "}";
+
+                minioClient.setBucketPolicy(SetBucketPolicyArgs.builder()
+                                .bucket(bucketName).config(policy).build());
                 log.info("Bucket '{}' created successfully.", bucketName);
             } else {
                 log.info("Bucket '{}' already exists.", bucketName);
@@ -91,7 +101,7 @@ public class ReportService {
         uploads = uploadRepository.saveAll(uploads);
 
         for (Upload upload : uploads) {
-            String uploadUrl = generateMinioPreSignedUrl(upload.getId().toString());
+            String uploadUrl = generateMinioPreSignedUrl(report.getId().toString(), upload.getId().toString());
 
             UploadDTO dto = UploadDTO.builder()
                     .id(upload.getId())
@@ -113,18 +123,54 @@ public class ReportService {
         return reportRepository.findAll();
     }
 
-    public Report getReportById(UUID id) {
-        return reportRepository.findById(id).orElse(null);
+    public ReportResponseDTO getReportById(UUID id) throws Exception {
+        Report report = reportRepository.findById(id).orElse(null);
+
+        if (report == null) return null;
+
+        List<UploadDTO> uploads = new LinkedList<>();
+
+        for (Upload upload : report.getUploads()) {
+            String objectPath = String.format("%s/%s", report.getId(), upload.getId());
+            boolean uploaded = minioObjectExists(objectPath);
+
+            UploadDTO dto = UploadDTO.builder()
+                    .id(upload.getId())
+                    .cameraId(upload.getCamera().getId())
+                    .uploaded(uploaded)
+                    .uploadUrl(!uploaded ? generateMinioPreSignedUrl(report.getId().toString(), upload.getId().toString()) : null)
+                    .build();
+
+            uploads.add(dto);
+        }
+
+        return ReportResponseDTO.builder()
+                .id(report.getId())
+                .name(report.getName())
+                .uploads(uploads)
+                .build();
     }
 
-    private String generateMinioPreSignedUrl(String uploadId) throws Exception {
+    private String generateMinioPreSignedUrl(String reportId, String uploadId) throws Exception {
+        String objectPath = String.format("%s/%s", reportId, uploadId);
+
         GetPresignedObjectUrlArgs args = GetPresignedObjectUrlArgs.builder()
                 .method(Method.PUT)
                 .bucket(bucketName)
-                .object(uploadId)
+                .object(objectPath)
                 .expiry(12, TimeUnit.HOURS)
                 .build();
 
         return minioClient.getPresignedObjectUrl(args);
+    }
+
+    private boolean minioObjectExists(String objectPath) {
+        try {
+            minioClient.statObject(StatObjectArgs.builder().bucket(bucketName).object(objectPath).build());
+        } catch (Exception ex) {
+            return false;
+        }
+
+        return true;
     }
 }
