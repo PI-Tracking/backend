@@ -24,18 +24,18 @@ public class UsersController {
         this.authService = authService;
     }
 
-    @PreAuthorize("@usersService.isAdmin(authentication)")
+    @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin() and @usersService.getCurrentUser(authentication).isActive()")
     @PostMapping
     public ResponseEntity<LoginDTO> createUser(@RequestBody @Valid CreateUserDTO dto) throws Exception {
         LoginDTO login = authService.createUser(dto);
         return new ResponseEntity<>(login, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("@usersService.isAdmin(authentication)")
+    @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin() and @usersService.getCurrentUser(authentication).isActive()")
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {return ResponseEntity.ok(usersService.getAllUsers());}
 
-    @PreAuthorize("@usersService.isAdmin(authentication)")
+    @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin() and @usersService.getCurrentUser(authentication).isActive()")
     @GetMapping("/{badgeId}")
     public ResponseEntity<User> getUserByBadgeId(@PathVariable("badgeId") String badgeId) {
         User user = usersService.getUserByBadgeId(badgeId);
@@ -45,7 +45,7 @@ public class UsersController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PreAuthorize("@usersService.isAdmin(authentication)")
+    @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin() and @usersService.getCurrentUser(authentication).isActive() and @usersService.getCurrentUser(authentication).getBadgeId() != #badgeId")
     @PatchMapping("/{badgeId}/toggle-active")
     public ResponseEntity<?> toggleActive(@PathVariable("badgeId") String badgeId) {
         User user = usersService.getUserByBadgeId(badgeId);

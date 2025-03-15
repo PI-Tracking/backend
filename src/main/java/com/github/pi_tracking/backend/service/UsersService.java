@@ -27,15 +27,12 @@ public class UsersService {
         return userRepository.findByBadgeId(badgeId).orElse(null);
     }
 
-    public boolean isAdmin(Authentication authentication) {
-        if (authentication == null) {
-            return false;
-        }
+    public User getCurrentUser(Authentication authentication) {
         String username = authentication.getName();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return user.isAdmin();
+        return user;
     }
 }
