@@ -5,7 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,19 +24,21 @@ import java.util.List;
 @Entity
 public class User implements UserDetails {
     @Id
-    @Pattern(regexp = "[0-9]{8}")
-    private String cc;
+    private String badgeId;
+
     @Column(nullable = false)
-    @Pattern(regexp = "/^[a-z0-9.]+@[a-z0-9]+\\.[a-z]+\\.([a-z]+)?$/i")
     private String email;
-    @Column(updatable = false, nullable = false)
+
+    @Column(updatable = false, nullable = false, unique = true)
     private String username;
+
     @Column(nullable = false)
     @JsonIgnore
     private String password;
 
     @Builder.Default
     private boolean isAdmin = false;
+
     @Builder.Default
     private boolean active = true;
 
@@ -63,6 +64,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
+
 }
