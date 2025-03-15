@@ -2,6 +2,7 @@ package com.github.pi_tracking.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,7 +41,7 @@ public class User implements UserDetails {
     private boolean active = true;
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.DETACH)
-    @JsonBackReference
+    @JsonManagedReference
     private List<Report> reports;
 
     @Override

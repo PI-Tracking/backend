@@ -1,5 +1,6 @@
 package com.github.pi_tracking.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -27,11 +28,12 @@ public class Report {
     private String name;
 
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL)
+    @JsonManagedReference(value = "report-uploads")
     private List<Upload> uploads;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonManagedReference
+    @JsonBackReference
     private User creator;
 
     @CreationTimestamp

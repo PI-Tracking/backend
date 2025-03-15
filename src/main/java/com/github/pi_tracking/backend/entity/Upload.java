@@ -22,11 +22,11 @@ public class Upload {
 
     @ManyToOne
     @JoinColumn(name = "camera_id", nullable = false)
-    @JsonManagedReference
+    @JsonBackReference(value = "camera-uploads")
     private Camera camera;
 
     @ManyToOne
     @JoinColumn(name = "report_id", nullable = false)
-    @JsonBackReference
+    @JsonBackReference(value = "report-uploads")
     private Report report;
 }
