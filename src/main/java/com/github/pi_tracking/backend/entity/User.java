@@ -3,7 +3,6 @@ package com.github.pi_tracking.backend.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,14 +21,12 @@ import java.util.List;
 @Entity
 public class User implements UserDetails {
     @Id
-    @Pattern(regexp = "[0-9]{8}")
-    private String cc;
+    private String badgeId;
 
     @Column(nullable = false)
-    @Pattern(regexp = "/^[a-z0-9.]+@[a-z0-9]+\\.[a-z]+\\.([a-z]+)?$/i")
     private String email;
 
-    @Column(updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -68,6 +65,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return active;
     }
 }
