@@ -1,10 +1,9 @@
 package com.github.pi_tracking.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
-
 
 @Data
 @Builder
@@ -42,6 +40,10 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean active = true;
 
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.DETACH)
+    @JsonManagedReference
+    private List<Report> reports;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
@@ -66,5 +68,4 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return active;
     }
-
 }
