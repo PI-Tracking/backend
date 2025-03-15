@@ -4,6 +4,7 @@ import com.github.pi_tracking.backend.dto.LoginDTO;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.AuthService;
 import com.github.pi_tracking.backend.service.JWTService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -57,6 +58,7 @@ public class LoginController {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, expiredCookie.toString());
+
 
         return ResponseEntity.noContent().build();
     }

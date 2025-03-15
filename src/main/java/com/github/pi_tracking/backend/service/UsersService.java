@@ -2,6 +2,8 @@ package com.github.pi_tracking.backend.service;
 
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -25,5 +27,15 @@ public class UsersService {
         return userRepository.findByBadgeId(badgeId).orElse(null);
     }
 
+    public boolean isAdmin(Authentication authentication) {
+        if (authentication == null) {
+            return false;
+        }
+        String username = authentication.getName();
 
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return user.isAdmin();
+    }
 }
