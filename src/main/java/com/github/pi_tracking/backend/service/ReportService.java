@@ -80,7 +80,7 @@ public class ReportService {
         List<Upload> uploads = new LinkedList<>();
         List<UploadDTO> uploadDTOs = new LinkedList<>();
 
-        Set<UUID> allCameras = camerasRepository.findAll().stream().map(Camera::getId).collect(Collectors.toSet());
+        Set<UUID> allCameras = camerasRepository.findAll().stream().filter(Camera::isActive).map(Camera::getId).collect(Collectors.toSet());
 
         if (!allCameras.containsAll(cameras)) {
             throw new IllegalArgumentException("Invalid camera ID(s)");
