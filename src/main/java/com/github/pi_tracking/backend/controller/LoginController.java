@@ -1,19 +1,17 @@
 package com.github.pi_tracking.backend.controller;
 
+import com.github.pi_tracking.backend.dto.ChangePasswordDTO;
 import com.github.pi_tracking.backend.dto.LoginDTO;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.AuthService;
 import com.github.pi_tracking.backend.service.JWTService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -61,6 +59,15 @@ public class LoginController {
 
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/changePassword")
+    public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordDTO dto) {
+        LoginDTO login = authService.changePassword(dto);
+        if (login == null) {
+            return new ResponseEntity<>("Not working",HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>("Password changed successfully", HttpStatus.OK);
     }
 
 }
