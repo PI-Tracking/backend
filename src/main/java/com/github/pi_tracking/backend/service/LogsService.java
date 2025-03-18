@@ -35,7 +35,7 @@ public class LogsService {
         return log;
     }
 
-    public List<Log> getLogsAfterTimestamp(long timestamp) {
+    public List<Log> getLogsAfterTimestamp(Long timestamp) {
         return actionLogsRepository.findByTimestampGreaterThan(timestamp);
     }
 
