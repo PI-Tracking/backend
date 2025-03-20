@@ -16,11 +16,17 @@ public class LogsService {
         this.actionLogsRepository = actionLogsRepository;
     }
 
+    //To create logs for testing purposes
+    public Log createLog(Log log) {
+        return actionLogsRepository.save(log);
+    }
+
+
 
     //To access logs
 
     public List<Log> getLogsByUserBadge(String userBadge) {
-        return actionLogsRepository.findByUser_badge(userBadge);
+        return actionLogsRepository.findByuserBadge(userBadge);
     }
 
     public List<Log> getAllLogs() {
@@ -42,35 +48,42 @@ public class LogsService {
     //To store logs
 
     public void saveLoginLog(String userBadge, String userName) {
-        Log log = new Log();
-        log.setUser_badge(userBadge);
-        log.setUser_name(userName);
-        log.setAction(Actions.Login);
+        Log log = Log.builder()
+                .userBadge(userBadge)
+                .userName(userName)
+                .action(Actions.Login)
+                .build();
+
         actionLogsRepository.save(log);
+
+        
     }
 
     public void saveLogoutLog(String userBadge, String userName) {
-        Log log = new Log();
-        log.setUser_badge(userBadge);
-        log.setUser_name(userName);
-        log.setAction(Actions.Logout);
+        Log log = Log.builder()
+                .userBadge(userBadge)
+                .userName(userName)
+                .action(Actions.Logout)
+                .build();
         actionLogsRepository.save(log);
     }
 
     public void saveActionLog(String userBadge, String userName, Actions action) {
-        Log log = new Log();
-        log.setUser_badge(userBadge);
-        log.setUser_name(userName);
-        log.setAction(action);
+        Log log = Log.builder()
+                .userBadge(userBadge)
+                .userName(userName)
+                .action(action)
+                .build();
         actionLogsRepository.save(log);
     }
 
     public void saveAccessLog(String userBadge, String userName, UUID logAccessed) {
-        Log log = new Log();
-        log.setUser_badge(userBadge);
-        log.setUser_name(userName);
-        log.setAction(Actions.Access_logs);
-        log.setLog_accessed(logAccessed);
+        Log log = Log.builder()
+                .userBadge(userBadge)
+                .userName(userName)
+                .action(Actions.Access_logs)
+                .logAccessed(logAccessed)
+                .build();
         actionLogsRepository.save(log);
     }
 
