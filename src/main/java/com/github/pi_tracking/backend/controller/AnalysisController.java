@@ -25,29 +25,46 @@ import java.util.UUID;
 public class AnalysisController {
 
     private final ReportService reportService;
-    private final RabbitMQProducer rabbitMQProducer;
+  
 
-    public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer) {
+    public AnalysisController(ReportService reportService) {
         this.reportService = reportService;
-        this.rabbitMQProducer = rabbitMQProducer;
-        
-
     }
 
     @GetMapping("/{reportId}")
-    public ResponseEntity<ReportResponseDTO> getReport(@PathVariable UUID reportId) {
+    public ResponseEntity<List<String>> analyseReport(@PathVariable UUID reportId) {
         try{
+            RabbitMQProducer rabbitMQProducer = new RabbitMQProducer();
             ReportResponseDTO report = reportService.getReportById(reportId);
             List<UploadDTO> uploads = report.getUploads();
             List<String> videos=new ArrayList<String>();
+            String analysisId = UUID.randomUUID().toString();
             for (UploadDTO upload : uploads) {
                 videos.add(upload.getUploadUrl());
             }
-            rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos);
-            return new ResponseEntity<>(report, HttpStatus.OK);
+            rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId);
+            List<String> response = new ArrayList<>();
+            response.add(analysisId);
+            response.add(reportId.toString());
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @GetMapping("/live")
+    public ResponseEntity<String> startLiveAnalysis(@RequestBody List<String> camerasId) {
+        RabbitMQProducer rabbitMQProducer = new RabbitMQProducer();
+        String analysisId = UUID.randomUUID().toString();
+        rabbitMQProducer.startLiveAnalysis(camerasId, analysisId);
+        return new ResponseEntity<>(analysisId, HttpStatus.OK);
+    }
+
+    @PostMapping("/live/{analysisId}")
+    public ResponseEntity<String> stopLiveAnalysis(@PathVariable String analysisId) {
+        RabbitMQProducer rabbitMQProducer = new RabbitMQProducer();
+        rabbitMQProducer.stopLiveAnalysis(analysisId);
+        return new ResponseEntity<>(analysisId, HttpStatus.OK);
     }
 
 

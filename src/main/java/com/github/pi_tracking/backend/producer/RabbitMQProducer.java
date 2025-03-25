@@ -14,29 +14,72 @@ import java.io.IOException;
 
 public class RabbitMQProducer {
 
-    private final static String QUEUE_NAME = "Requests";
-    private final static String HOST = "localhost";
+    private final static String requests_queue = "Requests";
+    private final static String live_analysis_queue = "Cameras";
+    private final static String HOST = "rabbitmq";
 
-    public void sendReportToAnalyse(String reportId, List<String> videos) {
+    public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(HOST);
         
         try (Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()) {
 
-            channel.queueDeclare(QUEUE_NAME, true, false, false, null);
+            channel.queueDeclare(requests_queue, true, false, false, null);
             
-            String message = buildMessage(reportId, videos);
+            String message = buildMessage(reportId,analysisId, videos);
             
-            channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes("UTF-8"));
+            channel.basicPublish("", requests_queue, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes("UTF-8"));
             System.out.println(" [x] Sent report to analyse: " + message);
+            System.out.println(" [x] Analysis ID: " + analysisId);
         } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
     }
-    
-    private String buildMessage(String reportId, List<String> videos) {
-        return "ReportID: " + reportId + ", Videos: " + String.join(", ", videos);
+
+    public void startLiveAnalysis(List<String> cameras, String analysisId) {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost(HOST);
+        
+        try (Connection connection = factory.newConnection();
+            Channel channel = connection.createChannel()) {
+
+            channel.queueDeclare(live_analysis_queue, true, false, false, null);
+            
+            String message = buildMessage("", analysisId, cameras);
+            
+            channel.basicPublish("", live_analysis_queue, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes("UTF-8"));
+            System.out.println(" [x] Sent live analysis request: " + message);
+            System.out.println(" [x] Analysis ID: " + analysisId);
+        } catch (IOException | TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stopLiveAnalysis(String analysisId) {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost(HOST);
+        
+        try (Connection connection = factory.newConnection();
+            Channel channel = connection.createChannel()) {
+
+            channel.queueDeclare(live_analysis_queue, true, false, false, null);
+            
+            String message = "Stop: " + analysisId;
+            
+            channel.basicPublish("", live_analysis_queue, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes("UTF-8"));
+            System.out.println(" [x] Sent stop live analysis request: " + message);
+            System.out.println(" [x] Analysis ID: " + analysisId);
+        } catch (IOException | TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String buildMessage(String reportId, String analysisId, List<String> videos) {
+        if (reportId == "") {
+            return analysisId + ";" + String.join(" ", videos);
+        }
+        return reportId + ";" + analysisId + ";" + String.join(" ", videos);
     }
     
 }
