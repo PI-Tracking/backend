@@ -21,6 +21,7 @@ public class RabbitMQProducer {
     public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(HOST);
+        factory.setPort(5672);
         
         try (Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()) {
@@ -40,6 +41,7 @@ public class RabbitMQProducer {
     public void startLiveAnalysis(List<String> cameras, String analysisId) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(HOST);
+        factory.setPort(5672);
         
         try (Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()) {
@@ -59,6 +61,7 @@ public class RabbitMQProducer {
     public void stopLiveAnalysis(String analysisId) {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(HOST);
+        factory.setPort(5672);
         
         try (Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()) {
