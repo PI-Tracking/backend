@@ -1,5 +1,6 @@
 package com.github.pi_tracking.backend.service;
 
+import com.github.pi_tracking.backend.dto.ChangePasswordDTO;
 import com.github.pi_tracking.backend.dto.CreateUserDTO;
 import com.github.pi_tracking.backend.dto.LoginDTO;
 import com.github.pi_tracking.backend.entity.User;
@@ -59,6 +60,20 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
         );
         return userRepository.findByUsername(dto.getUsername()).orElseThrow();
+    }
+
+    public LoginDTO changePassword(ChangePasswordDTO dto) {
+        if (!userRepository.existsByUsername(dto.getUsername())){
+            throw new IllegalArgumentException("User or password is incorrect!");
+        }
+        User user = userRepository.findByUsername(dto.getUsername()).orElse(null);
+
+        if (user == null || !passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("User or password is incorrect!");
+        }
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
+        return new LoginDTO(dto.getUsername(), dto.getNewPassword());
     }
 
 }
