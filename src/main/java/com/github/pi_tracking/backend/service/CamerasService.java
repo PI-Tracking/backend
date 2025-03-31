@@ -6,6 +6,7 @@ import com.github.pi_tracking.backend.repository.CamerasRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class CamerasService {
         Optional<Camera> optionalCamera = camerasRepository.findById(cameraId);
 
         if (optionalCamera.isEmpty()) {
-            throw new IllegalArgumentException("Invalid camera id!");
+            throw new NoSuchElementException("Invalid camera id!");
         }
 
         Camera cam = optionalCamera.get();
