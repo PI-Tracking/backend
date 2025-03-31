@@ -3,6 +3,7 @@ package com.github.pi_tracking.backend.controller;
 import com.github.pi_tracking.backend.dto.CameraDTO;
 import com.github.pi_tracking.backend.entity.Camera;
 import com.github.pi_tracking.backend.service.CamerasService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -71,12 +73,15 @@ public class CamerasController {
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleException(NoSuchElementException e) {
+    public ResponseEntity<Map<String, String>> handleException(NoSuchElementException e) {
         /** 
          * Buils a specific response with status NOT_FOUND 
          * when NoSuchElementException is thrown
          * To prevent BAD_REQUEST
          */
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(
+            Map.of("message", e.getMessage()),
+            HttpStatus.NOT_FOUND
+        );
     }
 }
