@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -67,5 +68,15 @@ public class CamerasController {
         camerasService.toggleActive(id);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleException(NoSuchElementException e) {
+        /** 
+         * Buils a specific response with status NOT_FOUND 
+         * when NoSuchElementException is thrown
+         * To prevent BAD_REQUEST
+         */
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
