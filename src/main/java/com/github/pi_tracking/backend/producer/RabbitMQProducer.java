@@ -40,26 +40,26 @@ public class RabbitMQProducer {
     public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId) {
         JsonObject message = buildJsonMessage(reportId, analysisId, videos, null);
         rabbitTemplate.convertAndSend(requests_queue, message);
-        System.out.println("[x] Sent report: " + message);
+      
     }
 
     public void sendReportToAnalyseWithSuspect(String reportId, List<String> videos, String analysisId, SelectedDTO selected) {
         JsonObject message = buildJsonMessage(reportId, analysisId, videos, selected);
         rabbitTemplate.convertAndSend(requests_queue, message);
-        System.out.println("[x] Sent report with suspect: " + message);
+     
     }
 
 
     public void startLiveAnalysis(List<String> cameras, String analysisId) {
         String message =analysisId + ";" + cameras;
         rabbitTemplate.convertAndSend(live_analysis_queue, message);
-        System.out.println("[x] Sent live analysis request: " + message);
+       
     }
 
     public void stopLiveAnalysis(String analysisId) {
         String message = "Stop:" + analysisId;
         rabbitTemplate.convertAndSend(live_analysis_queue, message);
-        System.out.println("[x] Sent stop live analysis request: " + message);
+   
     }
 
     private JsonObject buildJsonMessage(String reportId, String analysisId, List<String> videos, SelectedDTO selected) {
