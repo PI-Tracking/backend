@@ -41,7 +41,8 @@ public class AnalysisController {
             List<String> videos=new ArrayList<String>();
             String analysisId = UUID.randomUUID().toString();
             for (UploadDTO upload : uploads) {
-                videos.add(upload.getUploadUrl());
+                String url="http://localhost:9000/videos/"+reportId+"/"+upload.getId();
+                videos.add(url);
             }
             if (selected != null) {
                 rabbitMQProducer.sendReportToAnalyseWithSuspect(reportId.toString(), videos, analysisId, selected);
