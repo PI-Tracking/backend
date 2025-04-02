@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.DisabledException;
@@ -20,10 +21,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.util.WebUtils;
+import org.springframework.core.annotation.Order;
 
 import java.io.IOException;
 
 @Component
+@Order(1)
 public class JWTAuthenticationFilter extends OncePerRequestFilter{
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final JWTService jwtService;

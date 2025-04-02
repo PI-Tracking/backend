@@ -51,13 +51,6 @@ public class ApplicationConfig {
         return authProvider;
     }
 
-    @Bean
-    public FilterRegistrationBean<LoggingFilter> loggingFilter() {
-        FilterRegistrationBean<LoggingFilter> registrationBean = new FilterRegistrationBean<>();
-        registrationBean.setFilter(new LoggingFilter(LogsService));  
-        registrationBean.addUrlPatterns("/api/*"); // 
-        return registrationBean;
-    }
 
 
 }

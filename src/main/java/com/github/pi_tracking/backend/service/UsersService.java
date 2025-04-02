@@ -27,6 +27,11 @@ public class UsersService {
         return userRepository.findByBadgeId(badgeId).orElse(null);
     }
 
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(() -> 
+            new UsernameNotFoundException("User with username " + username + " not found"));
+    }
+
     public User getCurrentUser(Authentication authentication) {
         String username = authentication.getName();
 
