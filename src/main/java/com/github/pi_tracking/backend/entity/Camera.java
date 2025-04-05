@@ -38,6 +38,7 @@ public class Camera {
     private Double longitude;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @CreationTimestamp
