@@ -63,7 +63,7 @@ public class AnalysisController {
 
     @GetMapping("/live")
     public ResponseEntity<String> startLiveAnalysis(
-        @RequestParam List<String> camerasId // {endpoint}?cameraId=value1&cameraId=value2(...)
+        @RequestParam List<String> camerasId
     ) {
         String analysisId = UUID.randomUUID().toString();
         rabbitMQProducer.startLiveAnalysis(camerasId, analysisId);
@@ -75,7 +75,5 @@ public class AnalysisController {
         rabbitMQProducer.stopLiveAnalysis(analysisId);
         return new ResponseEntity<>(analysisId, HttpStatus.OK);
     }
-
-
 
 }
