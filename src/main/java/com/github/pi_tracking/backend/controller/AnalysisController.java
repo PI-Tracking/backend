@@ -34,7 +34,10 @@ public class AnalysisController {
     }
 
     @PostMapping("/{reportId}")
-    public ResponseEntity<List<String>> analyseReport(@PathVariable UUID reportId, @RequestBody(required = false) SelectedDTO selected) {
+    public ResponseEntity<List<String>> analyseReport(
+        @PathVariable UUID reportId,
+        @RequestBody(required = false) SelectedDTO selected)
+    {
         try{
             ReportResponseDTO report = reportService.getReportById(reportId);
             List<UploadDTO> uploads = report.getUploads();
@@ -59,7 +62,9 @@ public class AnalysisController {
     }
 
     @GetMapping("/live")
-    public ResponseEntity<String> startLiveAnalysis(@RequestBody List<String> camerasId) {
+    public ResponseEntity<String> startLiveAnalysis(
+        @RequestParam List<String> camerasId // {endpoint}?cameraId=value1&cameraId=value2(...)
+    ) {
         String analysisId = UUID.randomUUID().toString();
         rabbitMQProducer.startLiveAnalysis(camerasId, analysisId);
         return new ResponseEntity<>(analysisId, HttpStatus.OK);
