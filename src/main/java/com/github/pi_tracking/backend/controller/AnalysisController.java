@@ -38,31 +38,32 @@ public class AnalysisController {
     public ResponseEntity<AnalysisResponseDTO> analyseReport(
         @PathVariable UUID reportId,
         @RequestBody(required = false) SelectedDTO selected
-    ) {
-        try{
-            ReportResponseDTO report = reportService.getReportById(reportId);
-            List<UploadDTO> uploads = report.getUploads();
-            List<String> videos = new ArrayList<>();
-            String analysisId = UUID.randomUUID().toString();
+    ) throws Exception {
+        ReportResponseDTO report = reportService.getReportById(reportId);
 
-            for (UploadDTO upload : uploads) {
-                if (upload.isUploaded()) {
-                    String url = String.format("%s/%s/%s/%s", minioUrl, minioBucket, reportId, upload.getId());
-                    videos.add(url);
-                }
-            }
-
-            if (selected != null) {
-                rabbitMQProducer.sendReportToAnalyseWithSuspect(reportId.toString(), videos, analysisId, selected);
-            } else {
-                rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId);
-            }
-
-            AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
+        if (report == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        List<UploadDTO> uploads = report.getUploads();
+        List<String> videos = new ArrayList<>();
+        String analysisId = UUID.randomUUID().toString();
+
+        for (UploadDTO upload : uploads) {
+            if (upload.isUploaded()) {
+                String url = String.format("%s/%s/%s/%s", minioUrl, minioBucket, reportId, upload.getId());
+                videos.add(url);
+            }
+        }
+
+        if (selected != null) {
+            rabbitMQProducer.sendReportToAnalyseWithSuspect(reportId.toString(), videos, analysisId, selected);
+        } else {
+            rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId);
+        }
+
+        AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/live")
