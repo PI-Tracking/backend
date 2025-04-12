@@ -1,18 +1,13 @@
 package com.github.pi_tracking.backend.controller;
 
-
-import com.github.pi_tracking.backend.dto.NewReportDTO;
+import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
 import com.github.pi_tracking.backend.dto.ReportResponseDTO;
 import com.github.pi_tracking.backend.dto.SelectedDTO;
 import com.github.pi_tracking.backend.dto.UploadDTO;
-import com.github.pi_tracking.backend.entity.Report;
-import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.ReportService;
-import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.pi_tracking.backend.producer.RabbitMQProducer;
@@ -28,33 +23,42 @@ public class AnalysisController {
     private final ReportService reportService;
     private final RabbitMQProducer rabbitMQProducer;
 
+    @Value("${minio.url}")
+    private String minioUrl;
+
+    @Value("${minio.bucket.name}")
+    private String minioBucket;
+
     public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer) {
         this.reportService = reportService;
         this.rabbitMQProducer = rabbitMQProducer;
     }
 
     @PostMapping("/{reportId}")
-    public ResponseEntity<List<String>> analyseReport(
+    public ResponseEntity<AnalysisResponseDTO> analyseReport(
         @PathVariable UUID reportId,
-        @RequestBody(required = false) SelectedDTO selected)
-    {
+        @RequestBody(required = false) SelectedDTO selected
+    ) {
         try{
             ReportResponseDTO report = reportService.getReportById(reportId);
             List<UploadDTO> uploads = report.getUploads();
-            List<String> videos=new ArrayList<String>();
+            List<String> videos = new ArrayList<>();
             String analysisId = UUID.randomUUID().toString();
+
             for (UploadDTO upload : uploads) {
-                String url="http://localhost:9000/videos/"+reportId+"/"+upload.getId();
-                videos.add(url);
+                if (upload.isUploaded()) {
+                    String url = String.format("%s/%s/%s/%s", minioUrl, minioBucket, reportId, upload.getId());
+                    videos.add(url);
+                }
             }
+
             if (selected != null) {
                 rabbitMQProducer.sendReportToAnalyseWithSuspect(reportId.toString(), videos, analysisId, selected);
             } else {
                 rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId);
             }
-            List<String> response = new ArrayList<>();
-            response.add(analysisId);
-            response.add(reportId.toString());
+
+            AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -62,18 +66,19 @@ public class AnalysisController {
     }
 
     @GetMapping("/live")
-    public ResponseEntity<String> startLiveAnalysis(
+    public ResponseEntity<AnalysisResponseDTO> startLiveAnalysis(
         @RequestParam List<String> camerasId
     ) {
         String analysisId = UUID.randomUUID().toString();
         rabbitMQProducer.startLiveAnalysis(camerasId, analysisId);
-        return new ResponseEntity<>(analysisId, HttpStatus.OK);
+        AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/live/{analysisId}")
-    public ResponseEntity<String> stopLiveAnalysis(@PathVariable String analysisId) {
+    public ResponseEntity<AnalysisResponseDTO> stopLiveAnalysis(@PathVariable String analysisId) {
         rabbitMQProducer.stopLiveAnalysis(analysisId);
-        return new ResponseEntity<>(analysisId, HttpStatus.OK);
+        AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 }
