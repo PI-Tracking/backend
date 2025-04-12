@@ -9,9 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SelectedDTO {
-    private String videoId;
-    private long timestamp;
-    private int x;
-    private int y;
+public class AnalysisResponseDTO {
+    private String analysisId;
 }

@@ -1,82 +1,44 @@
 package com.github.pi_tracking.backend.producer;
 
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.MessageProperties;
-
-import io.swagger.v3.core.util.Json;
-
 import com.github.pi_tracking.backend.dto.SelectedDTO;
-import com.rabbitmq.client.AMQP;
-import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Consumer;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
-import java.io.IOException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Service;
-import org.checkerframework.checker.units.qual.m;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
 
-
+import static com.github.pi_tracking.backend.configuration.RabbitConfig.LIVE_ANALYSIS_QUEUE;
+import static com.github.pi_tracking.backend.configuration.RabbitConfig.REQUESTS_QUEUE;
 
 @Service
 public class RabbitMQProducer {
 
-    
-    private final static String requests_queue = "Requests";
-    private final static String live_analysis_queue = "Cameras";
+    private final RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
-
-
-    public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId) {
-        JsonObject message = buildJsonMessage(reportId, analysisId, videos, null);
-        rabbitTemplate.convertAndSend(requests_queue, message);
-      
+    public RabbitMQProducer(RabbitTemplate rabbitTemplate) {
+        this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendReportToAnalyseWithSuspect(String reportId, List<String> videos, String analysisId, SelectedDTO selected) {
-        JsonObject message = buildJsonMessage(reportId, analysisId, videos, selected);
-        rabbitTemplate.convertAndSend(requests_queue, message);
-     
-    }
-
-
-    public void startLiveAnalysis(List<String> cameras, String analysisId) {
-        String message =analysisId + ";" + cameras;
-        rabbitTemplate.convertAndSend(live_analysis_queue, message);
-       
-    }
-
-    public void stopLiveAnalysis(String analysisId) {
-        String message = "Stop:" + analysisId;
-        rabbitTemplate.convertAndSend(live_analysis_queue, message);
-   
-    }
-
-    private JsonObject buildJsonMessage(String reportId, String analysisId, List<String> videos, SelectedDTO selected) {
+    public void sendReportToAnalyse(String reportId, String analysisId, SelectedDTO selected) {
         JsonObject json = new JsonObject();
-        json.addProperty("reportId", reportId);
         json.addProperty("analysisId", analysisId);
-
-        JsonArray videosArray = new JsonArray();
-        videos.forEach(videosArray::add);
-        json.add("videos", videosArray);
+        json.addProperty("reportId", reportId);
 
         if (selected != null) {
             json.add("selected", new Gson().toJsonTree(selected));
         }
 
-        return json;
+        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
     }
 
+    public void startLiveAnalysis(List<String> cameras, String analysisId) {
+        String message = analysisId + ";" + cameras;
+        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+    }
 
+    public void stopLiveAnalysis(String analysisId) {
+        String message = "Stop:" + analysisId;
+        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+    }
 }
