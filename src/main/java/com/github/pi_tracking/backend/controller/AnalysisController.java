@@ -1,18 +1,14 @@
 package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
-import com.github.pi_tracking.backend.dto.ReportResponseDTO;
 import com.github.pi_tracking.backend.dto.SelectedDTO;
-import com.github.pi_tracking.backend.dto.UploadDTO;
 import com.github.pi_tracking.backend.service.ReportService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.github.pi_tracking.backend.producer.RabbitMQProducer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,12 +19,6 @@ public class AnalysisController {
     private final ReportService reportService;
     private final RabbitMQProducer rabbitMQProducer;
 
-    @Value("${minio.url}")
-    private String minioUrl;
-
-    @Value("${minio.bucket.name}")
-    private String minioBucket;
-
     public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer) {
         this.reportService = reportService;
         this.rabbitMQProducer = rabbitMQProducer;
@@ -38,28 +28,15 @@ public class AnalysisController {
     public ResponseEntity<AnalysisResponseDTO> analyseReport(
         @PathVariable UUID reportId,
         @RequestBody(required = false) SelectedDTO selected
-    ) throws Exception {
-        ReportResponseDTO report = reportService.getReportById(reportId);
-
-        if (report == null) {
+    ) {
+        if (!reportService.reportExistsById(reportId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<UploadDTO> uploads = report.getUploads();
-        List<String> videos = new ArrayList<>();
         String analysisId = UUID.randomUUID().toString();
+        rabbitMQProducer.sendReportToAnalyse(reportId.toString(), analysisId, selected);
 
-        for (UploadDTO upload : uploads) {
-            if (upload.isUploaded()) {
-                String url = String.format("%s/%s/%s/%s", minioUrl, minioBucket, reportId, upload.getId());
-                videos.add(url);
-            }
-        }
-
-        rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId, selected);
-
-        AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(new AnalysisResponseDTO(analysisId), HttpStatus.OK);
     }
 
     @GetMapping("/live")

@@ -16,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -123,7 +120,11 @@ public class ReportService {
         return reportRepository.findAll();
     }
 
-    public ReportResponseDTO getReportById(UUID id) throws Exception {
+    public boolean reportExistsById(UUID id) {
+        return reportRepository.existsById(id);
+    }
+
+    public ReportResponseDTO getReportWithUploadUrlById(UUID id) throws Exception {
         Report report = reportRepository.findById(id).orElse(null);
 
         if (report == null) return null;
