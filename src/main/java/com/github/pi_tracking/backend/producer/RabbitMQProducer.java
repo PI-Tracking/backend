@@ -9,10 +9,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
 
+import static com.github.pi_tracking.backend.configuration.RabbitConfig.LIVE_ANALYSIS_QUEUE;
+import static com.github.pi_tracking.backend.configuration.RabbitConfig.REQUESTS_QUEUE;
+
 @Service
 public class RabbitMQProducer {
-    private static final String REQUESTS_QUEUE = "Requests";
-    private static final String LIVE_ANALYSIS_QUEUE = "Cameras";
 
     private final RabbitTemplate rabbitTemplate;
 
@@ -20,18 +21,13 @@ public class RabbitMQProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId) {
-        JsonObject message = buildJsonMessage(reportId, analysisId, videos, null);
-        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, message);
-    }
-
-    public void sendReportToAnalyseWithSuspect(String reportId, List<String> videos, String analysisId, SelectedDTO selected) {
-        JsonObject message = buildJsonMessage(reportId, analysisId, videos, selected);
+    public void sendReportToAnalyse(String reportId, List<String> videos, String analysisId, SelectedDTO selected) {
+        String message = buildJsonMessage(reportId, analysisId, videos, selected);
         rabbitTemplate.convertAndSend(REQUESTS_QUEUE, message);
     }
 
     public void startLiveAnalysis(List<String> cameras, String analysisId) {
-        String message =analysisId + ";" + cameras;
+        String message = analysisId + ";" + cameras;
         rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
     }
 
@@ -40,7 +36,7 @@ public class RabbitMQProducer {
         rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
     }
 
-    private JsonObject buildJsonMessage(String reportId, String analysisId, List<String> videos, SelectedDTO selected) {
+    private String buildJsonMessage(String reportId, String analysisId, List<String> videos, SelectedDTO selected) {
         JsonObject json = new JsonObject();
         json.addProperty("reportId", reportId);
         json.addProperty("analysisId", analysisId);
@@ -53,6 +49,6 @@ public class RabbitMQProducer {
             json.add("selected", new Gson().toJsonTree(selected));
         }
 
-        return json;
+        return json.toString();
     }
 }

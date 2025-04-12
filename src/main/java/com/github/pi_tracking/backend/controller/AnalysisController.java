@@ -56,11 +56,7 @@ public class AnalysisController {
             }
         }
 
-        if (selected != null) {
-            rabbitMQProducer.sendReportToAnalyseWithSuspect(reportId.toString(), videos, analysisId, selected);
-        } else {
-            rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId);
-        }
+        rabbitMQProducer.sendReportToAnalyse(reportId.toString(), videos, analysisId, selected);
 
         AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);

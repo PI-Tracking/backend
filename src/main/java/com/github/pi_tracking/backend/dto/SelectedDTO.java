@@ -10,12 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class SelectedDTO {
-
     private String videoId;
-    private int frame;
+    private long timestamp;
     private int x;
     private int y;
-
-    
-    
 }
