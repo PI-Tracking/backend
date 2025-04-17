@@ -1,6 +1,9 @@
 package com.github.pi_tracking.backend.configuration;
 
 import com.github.pi_tracking.backend.repository.UserRepository;
+import com.github.pi_tracking.backend.service.LogsService;
+
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +13,8 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 @Configuration
 public class ApplicationConfig {
@@ -45,6 +50,7 @@ public class ApplicationConfig {
 
         return authProvider;
     }
+
 
 
 }
