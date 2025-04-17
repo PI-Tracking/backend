@@ -54,6 +54,8 @@ public class LoggingFilter extends OncePerRequestFilter {
                 if (!userLogs.isEmpty()) {
                     Log lastLog = userLogs.get(userLogs.size() - 1);
                     Actions lastAction = lastLog.getAction();
+
+                    logsService.saveActionLog(userBadge, username, lastAction);
                 }
                 
             }
