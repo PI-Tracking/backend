@@ -3,6 +3,8 @@ package com.github.pi_tracking.backend.controller;
 import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
 import com.github.pi_tracking.backend.dto.SelectedDTO;
 import com.github.pi_tracking.backend.service.ReportService;
+import com.github.pi_tracking.backend.entity.DetectionModel;
+import com.github.pi_tracking.backend.service.AnalysisService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +20,12 @@ public class AnalysisController {
 
     private final ReportService reportService;
     private final RabbitMQProducer rabbitMQProducer;
+    private final AnalysisService analysisService;
 
-    public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer) {
+    public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer, AnalysisService analysisService) {
         this.reportService = reportService;
         this.rabbitMQProducer = rabbitMQProducer;
+        this.analysisService = analysisService;
     }
 
     @PostMapping("/{reportId}")
@@ -54,5 +58,17 @@ public class AnalysisController {
         rabbitMQProducer.stopLiveAnalysis(analysisId);
         AnalysisResponseDTO response = new AnalysisResponseDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/report/{reportId}")
+    public ResponseEntity<List<DetectionModel>> getAnalysisResultsByReportId(@PathVariable String reportId) {
+        List<DetectionModel> results = analysisService.getResultsByReportId(reportId);
+        return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @GetMapping("/{analysisId}")
+    public ResponseEntity<List<DetectionModel>> getAnalysisResultsByAnalysisId(@PathVariable String analysisId) {
+        List<DetectionModel> results = analysisService.getResultsByAnalysisId(analysisId);
+        return new ResponseEntity<>(results, HttpStatus.OK);
     }
 }
