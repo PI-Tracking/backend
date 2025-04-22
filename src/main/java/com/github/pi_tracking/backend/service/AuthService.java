@@ -83,4 +83,18 @@ public class AuthService {
         return new LoginDTO(dto.getUsername(), dto.getNewPassword());
     }
 
+    public LoginDTO resetPassword(String email) {
+        if (!userRepository.existsByEmail(email)){
+            throw new IllegalArgumentException("Something went wrong!");
+        }
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null ) {
+            throw new IllegalArgumentException("Something went wrong!");
+        }
+        user.setPassword(StringUtils.generateRandomString(16));
+        userRepository.save(user);
+        return new LoginDTO(user.getUsername(), user.getPassword());
+    }
+
 }
