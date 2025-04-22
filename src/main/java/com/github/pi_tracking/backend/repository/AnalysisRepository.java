@@ -9,9 +9,7 @@ import java.util.List;
 @Repository
 public interface AnalysisRepository extends MongoRepository<DetectionModel, String> {
 
-    // Buscar as detecções de uma análise com base no analysis_id
     List<DetectionModel> findByAnalysisId(String analysisId);
 
-    // Buscar as detecções associadas a um report_id
     List<DetectionModel> findByReportId(String reportId);
 }

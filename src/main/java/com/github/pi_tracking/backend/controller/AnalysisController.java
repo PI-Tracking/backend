@@ -1,6 +1,7 @@
 package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
+import com.github.pi_tracking.backend.dto.CameraTimeIntervalDTO;
 import com.github.pi_tracking.backend.dto.SelectedDTO;
 import com.github.pi_tracking.backend.service.ReportService;
 import com.github.pi_tracking.backend.entity.DetectionModel;
@@ -70,5 +71,14 @@ public class AnalysisController {
     public ResponseEntity<List<DetectionModel>> getAnalysisResultsByAnalysisId(@PathVariable String analysisId) {
         List<DetectionModel> results = analysisService.getResultsByAnalysisId(analysisId);
         return new ResponseEntity<>(results, HttpStatus.OK);
+    }
+
+    @GetMapping("/{analysisId}/timestamps")
+    public ResponseEntity<List<CameraTimeIntervalDTO>> getCameraTimeIntervals(@PathVariable String analysisId) {
+        List<CameraTimeIntervalDTO> timeIntervals = analysisService.getCameraTimeIntervalsByAnalysisId(analysisId);
+        if (timeIntervals.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(timeIntervals, HttpStatus.OK);
     }
 }
