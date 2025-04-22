@@ -48,11 +48,18 @@ public class AuthService {
 
         userRepository.save(user);
 
+
+
         return LoginDTO
                 .builder()
                 .username(username)
                 .password(password)
                 .build();
+    }
+
+    public void removeUser(CreateUserDTO dto) {
+        User user = userRepository.getReferenceById(dto.getBadgeId());
+        userRepository.delete(user);
     }
 
     public User authenticate(LoginDTO dto){

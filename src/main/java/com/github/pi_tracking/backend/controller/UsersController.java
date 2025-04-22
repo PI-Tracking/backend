@@ -4,6 +4,7 @@ import com.github.pi_tracking.backend.dto.CreateUserDTO;
 import com.github.pi_tracking.backend.dto.LoginDTO;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.AuthService;
+import com.github.pi_tracking.backend.service.EmailService;
 import com.github.pi_tracking.backend.service.UsersService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,17 +19,25 @@ import java.util.List;
 public class UsersController {
     private final UsersService usersService;
     private final AuthService authService;
+    private final EmailService emailService;
 
-    public UsersController(UsersService usersService, AuthService authService) {
+    public UsersController(UsersService usersService, AuthService authService, EmailService emailService) {
         this.usersService = usersService;
         this.authService = authService;
+        this.emailService = emailService;
     }
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
     @PostMapping
-    public ResponseEntity<LoginDTO> createUser(@RequestBody @Valid CreateUserDTO dto) throws Exception {
+    public ResponseEntity<?> createUser(@RequestBody @Valid CreateUserDTO dto) {
         LoginDTO login = authService.createUser(dto);
-        return new ResponseEntity<>(login, HttpStatus.CREATED);
+        try {
+            emailService.sendEmail(usersService.getUserByUsername(login.getUsername()).getEmail(), "Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
+            return new ResponseEntity<>(login, HttpStatus.CREATED);
+        } catch (Exception e) {
+            authService.removeUser(dto);
+            return new ResponseEntity<>(e.toString(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
