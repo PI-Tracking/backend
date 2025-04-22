@@ -57,6 +57,11 @@ public class AuthService {
                 .build();
     }
 
+    public void removeUser(CreateUserDTO dto) {
+        User user = userRepository.getReferenceById(dto.getBadgeId());
+        userRepository.delete(user);
+    }
+
     public User authenticate(LoginDTO dto){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())

@@ -29,10 +29,15 @@ public class UsersController {
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
     @PostMapping
-    public ResponseEntity<LoginDTO> createUser(@RequestBody @Valid CreateUserDTO dto) throws Exception {
+    public ResponseEntity<?> createUser(@RequestBody @Valid CreateUserDTO dto) {
         LoginDTO login = authService.createUser(dto);
-        emailService.sendEmail(usersService.getUserByUsername(login.getUsername()).getEmail(),"Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
-        return new ResponseEntity<>(login, HttpStatus.CREATED);
+        try {
+            emailService.sendEmail(usersService.getUserByUsername(login.getUsername()).getEmail(), "Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
+            return new ResponseEntity<>(login, HttpStatus.CREATED);
+        } catch (Exception e) {
+            authService.removeUser(dto);
+            return new ResponseEntity<>(e.toString(), HttpStatus.NOT_FOUND);
+        }
     }
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
