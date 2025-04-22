@@ -2,9 +2,9 @@ package com.github.pi_tracking.backend.service;
 
 import com.github.pi_tracking.backend.entity.DetectionModel;
 import com.github.pi_tracking.backend.repository.AnalysisRepository;
-import com.github.pi_tracking.backend.repository.UploadRepository;
 import com.github.pi_tracking.backend.dto.CameraTimeIntervalDTO;
 import com.github.pi_tracking.backend.entity.Upload;
+import com.github.pi_tracking.backend.repository.UploadRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -73,10 +73,11 @@ public class AnalysisService {
     }
 
     private UUID getCameraIdFromDetection(String videoId) {
-        Upload upload = uploadRepository.findByVideoId(videoId);
+        Upload upload = uploadRepository.findById(UUID.fromString(videoId))
+                .orElseThrow(() -> new RuntimeException("Upload not found for videoId: " + videoId));
+    
         return upload.getCamera().getId();
     }
-
     private CameraTimeIntervalDTO createTimeIntervalDTO(UUID cameraId, LocalDateTime entryTimestamp, LocalDateTime exitTimestamp) {
         return new CameraTimeIntervalDTO(cameraId, entryTimestamp, exitTimestamp);
     }

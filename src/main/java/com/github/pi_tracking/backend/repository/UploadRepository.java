@@ -7,5 +7,4 @@ import java.util.UUID;
 
 public interface UploadRepository extends JpaRepository<Upload, UUID> {
 
-    Upload findByVideoId(String videoId);
 }
