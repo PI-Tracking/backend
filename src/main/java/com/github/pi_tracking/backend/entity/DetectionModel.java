@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -24,10 +25,14 @@ public class DetectionModel {
     private String videoId; 
 
     @Field("analysis_id")
+    @Indexed
     private String analysisId;  
 
     @Field("report_id")
+    @Indexed
     private String reportId;
+
+    private Double confidence;
 
     private long timestamp;
 
@@ -37,13 +42,13 @@ public class DetectionModel {
     private List<Point> detectionBox;  
 
     @Field("segmentation_mask")
-    private List<List<Float>> segmentationMask;
+    private List<List<Double>> segmentationMask;
 
     @Data  
     public static class Point {
 
-        private float x; 
-        private float y; 
+        private double x;
+        private double y;
     }
 
 }

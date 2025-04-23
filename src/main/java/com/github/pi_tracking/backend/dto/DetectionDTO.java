@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 public class DetectionDTO {
     private String className;
-    private float confidence;
+    private double confidence;
     private List<PointDTO> coordinates;
     private String videoId;
     private long timestamp;
@@ -23,7 +23,7 @@ public class DetectionDTO {
     @NoArgsConstructor
     @Builder
     public static class PointDTO {
-        private float x;
-        private float y;
+        private double x;
+        private double y;
     }
 }

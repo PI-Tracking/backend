@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 public class SegmentationDTO {
     private long id;
-    private List<List<Float>> polygon;
+    private List<List<Double>> polygon;
     private String videoId;
     private long timestamp;
 }
