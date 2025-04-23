@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
 
-
 @Service
 public class AnalysisService {
 
@@ -26,14 +25,6 @@ public class AnalysisService {
     public AnalysisService(AnalysisRepository analysisRepository, UploadRepository uploadRepository) {
         this.analysisRepository = analysisRepository;
         this.uploadRepository = uploadRepository;
-    }
-
-    public List<DetectionModel> getResultsByReportId(String reportId) {
-        return analysisRepository.findByReportId(reportId);
-    }
-
-    public List<DetectionModel> getResultsByAnalysisId(String analysisId) {
-        return analysisRepository.findByAnalysisId(analysisId);
     }
 
     public List<CameraTimeIntervalDTO> getCameraTimeIntervalsByAnalysisId(String analysisId) {
@@ -60,10 +51,7 @@ public class AnalysisService {
                 currentEntryTime = detection.getTimestamp(); // Use Long for timestamp
             }
         
-            // Update the exit timestamp only when the suspect leaves the camera (camera changes)
-            if (!currentCameraId.equals(cameraId)) {
-                currentExitTime = detection.getTimestamp(); 
-            }
+            currentExitTime = detection.getTimestamp();
         }
         
         if (currentCameraId != null) {
@@ -73,26 +61,27 @@ public class AnalysisService {
         return timeIntervals;
     }
 
-    public AnalysisResponseDTO createAnalysisResponseDTO(String analysisId, UUID reportId) {
+    public AnalysisResponseDTO createAnalysisResponseDTO(String analysisId) {
+        if (!analysisRepository.existsByAnalysisId(analysisId)) return null;
+
         List<DetectionDTO> detections = getDetectionsByAnalysisId(analysisId);
         List<SegmentationDTO> segmentations = getSegmentationsByAnalysisId(analysisId);
 
         return AnalysisResponseDTO.builder()
                 .analysisId(analysisId)
-                .reportId(reportId != null ? reportId.toString() : null)
                 .detections(detections)
                 .segmentations(segmentations)
                 .build();
 }
 
     private List<DetectionDTO> getDetectionsByAnalysisId(String analysisId) {
-        List<DetectionModel> detectionModels = analysisRepository.findByAnalysisId(analysisId);
+        List<DetectionModel> detectionModels = analysisRepository.findByAnalysisIdAndDetectionBoxIsNotNull(analysisId);
 
         List<DetectionDTO> detections = new ArrayList<>();
         for (DetectionModel detectionModel : detectionModels) {
             DetectionDTO detectionDTO = DetectionDTO.builder()
                     .className(detectionModel.getType())  // "knife", "gun", "suspect"
-                    .confidence(0.9f) // modify
+                    .confidence(detectionModel.getConfidence())
                     .coordinates(convertDetectionBoxToPointDTO(detectionModel.getDetectionBox())) 
                     .videoId(detectionModel.getVideoId())
                     .timestamp(detectionModel.getTimestamp())
@@ -105,13 +94,13 @@ public class AnalysisService {
 
 
     private List<SegmentationDTO> getSegmentationsByAnalysisId(String analysisId) {
-        List<DetectionModel> detectionModels = analysisRepository.findByAnalysisId(analysisId);
+        List<DetectionModel> detectionModels = analysisRepository.findByAnalysisIdAndSegmentationMaskIsNotNull(analysisId);
         
         List<SegmentationDTO> segmentationDTOs = new ArrayList<>();
         for (DetectionModel detection : detectionModels) {
             if (detection.getSegmentationMask() != null) {
                 SegmentationDTO segmentationDTO = SegmentationDTO.builder()
-                        .id(detection.getTimestamp())  // change if necessary
+                        .id(1)  // TBD: Change to the actual suspect id
                         .polygon(detection.getSegmentationMask()) 
                         .videoId(detection.getVideoId())
                         .timestamp(detection.getTimestamp())
@@ -122,8 +111,6 @@ public class AnalysisService {
         
         return segmentationDTOs;
     }
-
-
 
     private UUID getCameraIdFromDetection(String videoId) {
         Upload upload = uploadRepository.findById(UUID.fromString(videoId))

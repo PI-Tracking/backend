@@ -2,6 +2,7 @@ package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
 import com.github.pi_tracking.backend.dto.CameraTimeIntervalDTO;
+import com.github.pi_tracking.backend.dto.NewAnalysisDTO;
 import com.github.pi_tracking.backend.dto.SelectedDTO;
 import com.github.pi_tracking.backend.service.ReportService;
 import com.github.pi_tracking.backend.service.AnalysisService;
@@ -28,7 +29,7 @@ public class AnalysisController {
     }
 
     @PostMapping("/{reportId}")
-    public ResponseEntity<AnalysisResponseDTO> analyseReport(
+    public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
         @RequestBody(required = false) SelectedDTO selected
     ) {
@@ -39,40 +40,32 @@ public class AnalysisController {
         String analysisId = UUID.randomUUID().toString();
         rabbitMQProducer.sendReportToAnalyse(reportId.toString(), analysisId, selected);
 
-        // Preenche o DTO com as deteções e segmentações
-        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(analysisId, reportId);
+        // Only send the analysisId, as the analysis itself is processed asynchronously
+        NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/live")
-    public ResponseEntity<AnalysisResponseDTO> startLiveAnalysis(
+    public ResponseEntity<NewAnalysisDTO> startLiveAnalysis(
         @RequestParam List<String> camerasId
     ) {
         String analysisId = UUID.randomUUID().toString();
         rabbitMQProducer.startLiveAnalysis(camerasId, analysisId);
         
-        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(analysisId, null);
+        NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/live/{analysisId}")
-    public ResponseEntity<AnalysisResponseDTO> stopLiveAnalysis(@PathVariable String analysisId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void stopLiveAnalysis(@PathVariable String analysisId) {
         rabbitMQProducer.stopLiveAnalysis(analysisId);
-        
-        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(analysisId, null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-    @GetMapping("/report/{reportId}")
-    public ResponseEntity<AnalysisResponseDTO> getAnalysisResultsByReportId(@PathVariable String reportId) {
-        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(reportId, null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-}
 
     @GetMapping("/{analysisId}")
     public ResponseEntity<AnalysisResponseDTO> getAnalysisResultsByAnalysisId(@PathVariable String analysisId) {
-        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(analysisId, null);
+        AnalysisResponseDTO response = analysisService.createAnalysisResponseDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

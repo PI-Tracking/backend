@@ -1,6 +1,7 @@
 package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.NewReportDTO;
+import com.github.pi_tracking.backend.dto.ReportAnalysisResponseDTO;
 import com.github.pi_tracking.backend.dto.ReportResponseDTO;
 import com.github.pi_tracking.backend.entity.Report;
 import com.github.pi_tracking.backend.entity.User;
@@ -48,5 +49,10 @@ public class ReportController {
         }
 
         return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/{reportId}/analysis")
+    public ResponseEntity<ReportAnalysisResponseDTO> getReportAnalysis(@PathVariable UUID reportId) {
+        return ResponseEntity.ok(reportService.getAnalysisForReport(reportId));
     }
 }
