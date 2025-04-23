@@ -26,7 +26,10 @@ public class DetectionModel {
     @Field("analysis_id")
     private String analysisId;  
 
-    private int timestamp; 
+    @Field("report_id")
+    private String reportId;
+
+    private long timestamp;
 
     private String type; 
 

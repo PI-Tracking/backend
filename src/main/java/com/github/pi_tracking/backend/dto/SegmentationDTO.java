@@ -11,9 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AnalysisResponseDTO {
-    private String analysisId;
-    private String reportId;
-    private List<DetectionDTO> detections;
-    private List<SegmentationDTO> segmentations;
+public class SegmentationDTO {
+    private long id;
+    private List<List<Float>> polygon;
+    private String videoId;
+    private long timestamp;
 }

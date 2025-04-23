@@ -1,0 +1,29 @@
+package com.github.pi_tracking.backend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class DetectionDTO {
+    private String className;
+    private float confidence;
+    private List<PointDTO> coordinates;
+    private String videoId;
+    private long timestamp;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class PointDTO {
+        private float x;
+        private float y;
+    }
+}
