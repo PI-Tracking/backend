@@ -1,11 +1,10 @@
 package com.github.pi_tracking.backend.service;
 
+import com.github.pi_tracking.backend.dto.ReportAnalysisResponseDTO;
 import com.github.pi_tracking.backend.dto.ReportResponseDTO;
 import com.github.pi_tracking.backend.dto.UploadDTO;
-import com.github.pi_tracking.backend.entity.Camera;
-import com.github.pi_tracking.backend.entity.Report;
-import com.github.pi_tracking.backend.entity.Upload;
-import com.github.pi_tracking.backend.entity.User;
+import com.github.pi_tracking.backend.entity.*;
+import com.github.pi_tracking.backend.repository.AnalysisRepository;
 import com.github.pi_tracking.backend.repository.CamerasRepository;
 import com.github.pi_tracking.backend.repository.ReportRepository;
 import com.github.pi_tracking.backend.repository.UploadRepository;
@@ -27,15 +26,17 @@ public class ReportService {
     private final CamerasRepository camerasRepository;
     private final MinioClient minioClient;
     private final UploadRepository uploadRepository;
+    private final AnalysisRepository analysisRepository;
 
     @Value("${minio.bucket.name}")
     private String bucketName;
 
-    public ReportService(ReportRepository reportRepository, CamerasRepository camerasRepository, MinioClient minioClient, UploadRepository uploadRepository) {
+    public ReportService(ReportRepository reportRepository, CamerasRepository camerasRepository, MinioClient minioClient, UploadRepository uploadRepository, AnalysisRepository analysisRepository) {
         this.reportRepository = reportRepository;
         this.camerasRepository = camerasRepository;
         this.minioClient = minioClient;
         this.uploadRepository = uploadRepository;
+        this.analysisRepository = analysisRepository;
     }
 
     @PostConstruct
@@ -150,6 +151,11 @@ public class ReportService {
                 .name(report.getName())
                 .uploads(uploads)
                 .build();
+    }
+
+    public ReportAnalysisResponseDTO getAnalysisForReport(UUID id) {
+        List<String> analysisIds = analysisRepository.findByReportId(id.toString());
+        return new ReportAnalysisResponseDTO(analysisIds);
     }
 
     private String generateMinioPreSignedUrl(String reportId, String uploadId) throws Exception {
