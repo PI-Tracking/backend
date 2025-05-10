@@ -1,160 +1,177 @@
-// package com.github.pi_tracking.backend.repository;
+package com.github.pi_tracking.backend.repository;
 
-// import com.github.pi_tracking.backend.entity.Camera;
-// import com.github.pi_tracking.backend.entity.Report;
-// import com.github.pi_tracking.backend.entity.Upload;
-// import com.github.pi_tracking.backend.entity.User;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import com.github.pi_tracking.backend.config.TestContainersConfig;
+import com.github.pi_tracking.backend.entity.Camera;
+import com.github.pi_tracking.backend.entity.Report;
+import com.github.pi_tracking.backend.entity.Upload;
+import com.github.pi_tracking.backend.entity.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-// import java.util.UUID;
+import java.util.UUID;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// @DataJpaTest
-// class UploadRepositoryTest {
+@DataJpaTest
+@Testcontainers
+@Transactional
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestContainersConfig.class)
+class UploadRepositoryTest {
 
-//     @Autowired
-//     private TestEntityManager entityManager;
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15.2-alpine");
 
-//     @Autowired
-//     private UploadRepository uploadRepository;
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
-//     @Test
-//     void save_WithValidUpload_ShouldPersistUpload() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+    @Autowired
+    private UploadRepository uploadRepository;
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
-//         entityManager.persist(report);
-//         entityManager.flush();
+    @Autowired
+    private UserRepository userRepository;
 
-//         Camera camera = Camera.builder()
-//                 .name("Test Camera")
-//                 .latitude(10.0)
-//                 .longitude(20.0)
-//                 .build();
-//         entityManager.persist(camera);
-//         entityManager.flush();
+    @Autowired
+    private ReportRepository reportRepository;
 
-//         Upload upload = Upload.builder()
-//                 .report(report)
-//                 .camera(camera)
-//                 .build();
+    @Autowired
+    private CamerasRepository camerasRepository;
 
-//         // Act
-//         Upload saved = uploadRepository.save(upload);
+    @Test
+    void save_WithValidUpload_ShouldPersistUpload() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertNotNull(saved.getId());
-//         assertEquals(report.getId(), saved.getReport().getId());
-//         assertEquals(camera.getId(), saved.getCamera().getId());
-//     }
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
+        reportRepository.save(report);
 
-//     @Test
-//     void findById_WithExistingUpload_ShouldReturnUpload() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+        Camera camera = Camera.builder()
+                .name("Test Camera")
+                .latitude(10.0)
+                .longitude(20.0)
+                .build();
+        camerasRepository.save(camera);
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
-//         entityManager.persist(report);
-//         entityManager.flush();
+        Upload upload = Upload.builder()
+                .report(report)
+                .camera(camera)
+                .build();
 
-//         Camera camera = Camera.builder()
-//                 .name("Test Camera")
-//                 .latitude(10.0)
-//                 .longitude(20.0)
-//                 .build();
-//         entityManager.persist(camera);
-//         entityManager.flush();
+        // Act
+        Upload saved = uploadRepository.save(upload);
 
-//         Upload upload = Upload.builder()
-//                 .report(report)
-//                 .camera(camera)
-//                 .build();
-//         entityManager.persist(upload);
-//         entityManager.flush();
+        // Assert
+        assertNotNull(saved.getId());
+        assertEquals(report.getId(), saved.getReport().getId());
+        assertEquals(camera.getId(), saved.getCamera().getId());
+    }
 
-//         // Act
-//         Upload found = uploadRepository.findById(upload.getId()).orElse(null);
+    @Test
+    void findById_WithExistingUpload_ShouldReturnUpload() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertNotNull(found);
-//         assertEquals(upload.getId(), found.getId());
-//         assertEquals(report.getId(), found.getReport().getId());
-//         assertEquals(camera.getId(), found.getCamera().getId());
-//     }
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
+        reportRepository.save(report);
 
-//     @Test
-//     void findById_WithNonExistingUpload_ShouldReturnEmpty() {
-//         // Act
-//         var found = uploadRepository.findById(UUID.randomUUID());
+        Camera camera = Camera.builder()
+                .name("Test Camera")
+                .latitude(10.0)
+                .longitude(20.0)
+                .build();
+        camerasRepository.save(camera);
 
-//         // Assert
-//         assertTrue(found.isEmpty());
-//     }
+        Upload upload = Upload.builder()
+                .report(report)
+                .camera(camera)
+                .build();
+        uploadRepository.save(upload);
 
-//     @Test
-//     void delete_WithExistingUpload_ShouldRemoveUpload() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+        // Act
+        Upload found = uploadRepository.findById(upload.getId()).orElse(null);
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
-//         entityManager.persist(report);
-//         entityManager.flush();
+        // Assert
+        assertNotNull(found);
+        assertEquals(upload.getId(), found.getId());
+        assertEquals(report.getId(), found.getReport().getId());
+        assertEquals(camera.getId(), found.getCamera().getId());
+    }
 
-//         Camera camera = Camera.builder()
-//                 .name("Test Camera")
-//                 .latitude(10.0)
-//                 .longitude(20.0)
-//                 .build();
-//         entityManager.persist(camera);
-//         entityManager.flush();
+    @Test
+    void findById_WithNonExistingUpload_ShouldReturnEmpty() {
+        // Act
+        var found = uploadRepository.findById(UUID.randomUUID());
 
-//         Upload upload = Upload.builder()
-//                 .report(report)
-//                 .camera(camera)
-//                 .build();
-//         entityManager.persist(upload);
-//         entityManager.flush();
+        // Assert
+        assertTrue(found.isEmpty());
+    }
 
-//         // Act
-//         uploadRepository.delete(upload);
-//         var found = uploadRepository.findById(upload.getId());
+    @Test
+    void delete_WithExistingUpload_ShouldRemoveUpload() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertTrue(found.isEmpty());
-//     }
-// } 
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
+        reportRepository.save(report);
+
+        Camera camera = Camera.builder()
+                .name("Test Camera")
+                .latitude(10.0)
+                .longitude(20.0)
+                .build();
+        camerasRepository.save(camera);
+
+        Upload upload = Upload.builder()
+                .report(report)
+                .camera(camera)
+                .build();
+        uploadRepository.save(upload);
+
+        // Act
+        uploadRepository.delete(upload);
+        var found = uploadRepository.findById(upload.getId());
+
+        // Assert
+        assertTrue(found.isEmpty());
+    }
+} 

@@ -1,113 +1,130 @@
-// package com.github.pi_tracking.backend.repository;
+package com.github.pi_tracking.backend.repository;
 
-// import com.github.pi_tracking.backend.entity.Report;
-// import com.github.pi_tracking.backend.entity.User;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import com.github.pi_tracking.backend.config.TestContainersConfig;
+import com.github.pi_tracking.backend.entity.Report;
+import com.github.pi_tracking.backend.entity.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-// import java.util.UUID;
+import java.util.UUID;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// @DataJpaTest
-// class ReportRepositoryTest {
+@DataJpaTest
+@Testcontainers
+@Transactional
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestContainersConfig.class)
+class ReportRepositoryTest {
 
-//     @Autowired
-//     private TestEntityManager entityManager;
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15.2-alpine");
 
-//     @Autowired
-//     private ReportRepository reportRepository;
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
-//     @Test
-//     void save_WithValidReport_ShouldPersistReport() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+    @Autowired
+    private ReportRepository reportRepository;
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
+    @Autowired
+    private UserRepository userRepository;
 
-//         // Act
-//         Report saved = reportRepository.save(report);
+    @Test
+    void save_WithValidReport_ShouldPersistReport() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertNotNull(saved.getId());
-//         assertEquals(report.getName(), saved.getName());
-//         assertEquals(creator.getBadgeId(), saved.getCreator().getBadgeId());
-//     }
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
 
-//     @Test
-//     void findById_WithExistingReport_ShouldReturnReport() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+        // Act
+        Report saved = reportRepository.save(report);
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
-//         entityManager.persist(report);
-//         entityManager.flush();
+        // Assert
+        assertNotNull(saved.getId());
+        assertEquals(report.getName(), saved.getName());
+        assertEquals(creator.getBadgeId(), saved.getCreator().getBadgeId());
+    }
 
-//         // Act
-//         Report found = reportRepository.findById(report.getId()).orElse(null);
+    @Test
+    void findById_WithExistingReport_ShouldReturnReport() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertNotNull(found);
-//         assertEquals(report.getId(), found.getId());
-//         assertEquals(report.getName(), found.getName());
-//         assertEquals(creator.getBadgeId(), found.getCreator().getBadgeId());
-//     }
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
+        reportRepository.save(report);
 
-//     @Test
-//     void findById_WithNonExistingReport_ShouldReturnEmpty() {
-//         // Act
-//         var found = reportRepository.findById(UUID.randomUUID());
+        // Act
+        Report found = reportRepository.findById(report.getId()).orElse(null);
 
-//         // Assert
-//         assertTrue(found.isEmpty());
-//     }
+        // Assert
+        assertNotNull(found);
+        assertEquals(report.getId(), found.getId());
+        assertEquals(report.getName(), found.getName());
+        assertEquals(creator.getBadgeId(), found.getCreator().getBadgeId());
+    }
 
-//     @Test
-//     void delete_WithExistingReport_ShouldRemoveReport() {
-//         // Arrange
-//         User creator = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(creator);
-//         entityManager.flush();
+    @Test
+    void findById_WithNonExistingReport_ShouldReturnEmpty() {
+        // Act
+        var found = reportRepository.findById(UUID.randomUUID());
 
-//         Report report = Report.builder()
-//                 .name("Test Report")
-//                 .creator(creator)
-//                 .build();
-//         entityManager.persist(report);
-//         entityManager.flush();
+        // Assert
+        assertTrue(found.isEmpty());
+    }
 
-//         // Act
-//         reportRepository.delete(report);
-//         var found = reportRepository.findById(report.getId());
+    @Test
+    void delete_WithExistingReport_ShouldRemoveReport() {
+        // Arrange
+        User creator = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(creator);
 
-//         // Assert
-//         assertTrue(found.isEmpty());
-//     }
-// } 
+        Report report = Report.builder()
+                .name("Test Report")
+                .creator(creator)
+                .build();
+        reportRepository.save(report);
+
+        // Act
+        reportRepository.delete(report);
+        var found = reportRepository.findById(report.getId());
+
+        // Assert
+        assertTrue(found.isEmpty());
+    }
+} 

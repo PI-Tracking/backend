@@ -1,192 +1,203 @@
-// package com.github.pi_tracking.backend.repository;
+package com.github.pi_tracking.backend.repository;
 
-// import com.github.pi_tracking.backend.entity.User;
-// import org.junit.jupiter.api.Test;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-// import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import com.github.pi_tracking.backend.config.TestContainersConfig;
+import com.github.pi_tracking.backend.entity.User;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-// import java.util.Optional;
+import java.util.Optional;
 
-// import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// @DataJpaTest
-// class UserRepositoryTest {
+@DataJpaTest
+@Testcontainers
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestContainersConfig.class)
+class UserRepositoryTest {
 
-//     @Autowired
-//     private TestEntityManager entityManager;
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15.2-alpine");
 
-//     @Autowired
-//     private UserRepository userRepository;
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
-//     @Test
-//     void findByBadgeId_WithExistingUser_ShouldReturnUser() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+    @Autowired
+    private UserRepository userRepository;
 
-//         // Act
-//         Optional<User> found = userRepository.findByBadgeId(user.getBadgeId());
+    @Test
+    void findByBadgeId_WithExistingUser_ShouldReturnUser() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(found.isPresent());
-//         assertEquals(user.getBadgeId(), found.get().getBadgeId());
-//     }
+        // Act
+        Optional<User> found = userRepository.findByBadgeId(user.getBadgeId());
 
-//     @Test
-//     void findByBadgeId_WithNonExistingUser_ShouldReturnEmpty() {
-//         // Act
-//         Optional<User> found = userRepository.findByBadgeId("nonexistent");
+        // Assert
+        assertTrue(found.isPresent());
+        assertEquals(user.getBadgeId(), found.get().getBadgeId());
+    }
 
-//         // Assert
-//         assertFalse(found.isPresent());
-//     }
+    @Test
+    void findByBadgeId_WithNonExistingUser_ShouldReturnEmpty() {
+        // Act
+        Optional<User> found = userRepository.findByBadgeId("nonexistent");
 
-//     @Test
-//     void findByUsername_WithExistingUser_ShouldReturnUser() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+        // Assert
+        assertFalse(found.isPresent());
+    }
 
-//         // Act
-//         Optional<User> found = userRepository.findByUsername(user.getUsername());
+    @Test
+    void findByUsername_WithExistingUser_ShouldReturnUser() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(found.isPresent());
-//         assertEquals(user.getUsername(), found.get().getUsername());
-//     }
+        // Act
+        Optional<User> found = userRepository.findByUsername(user.getUsername());
 
-//     @Test
-//     void findByUsername_WithNonExistingUser_ShouldReturnEmpty() {
-//         // Act
-//         Optional<User> found = userRepository.findByUsername("nonexistent");
+        // Assert
+        assertTrue(found.isPresent());
+        assertEquals(user.getUsername(), found.get().getUsername());
+    }
 
-//         // Assert
-//         assertFalse(found.isPresent());
-//     }
+    @Test
+    void findByUsername_WithNonExistingUser_ShouldReturnEmpty() {
+        // Act
+        Optional<User> found = userRepository.findByUsername("nonexistent");
 
-//     @Test
-//     void findByEmail_WithExistingUser_ShouldReturnUser() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+        // Assert
+        assertFalse(found.isPresent());
+    }
 
-//         // Act
-//         Optional<User> found = userRepository.findByEmail(user.getEmail());
+    @Test
+    void findByEmail_WithExistingUser_ShouldReturnUser() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(found.isPresent());
-//         assertEquals(user.getEmail(), found.get().getEmail());
-//     }
+        // Act
+        Optional<User> found = userRepository.findByEmail(user.getEmail());
 
-//     @Test
-//     void findByEmail_WithNonExistingUser_ShouldReturnEmpty() {
-//         // Act
-//         Optional<User> found = userRepository.findByEmail("nonexistent@example.com");
+        // Assert
+        assertTrue(found.isPresent());
+        assertEquals(user.getEmail(), found.get().getEmail());
+    }
 
-//         // Assert
-//         assertFalse(found.isPresent());
-//     }
+    @Test
+    void findByEmail_WithNonExistingUser_ShouldReturnEmpty() {
+        // Act
+        Optional<User> found = userRepository.findByEmail("nonexistent@example.com");
 
-//     @Test
-//     void existsByBadgeId_WithExistingUser_ShouldReturnTrue() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+        // Assert
+        assertFalse(found.isPresent());
+    }
 
-//         // Act
-//         boolean exists = userRepository.existsByBadgeId(user.getBadgeId());
+    @Test
+    void existsByBadgeId_WithExistingUser_ShouldReturnTrue() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(exists);
-//     }
+        // Act
+        boolean exists = userRepository.existsByBadgeId(user.getBadgeId());
 
-//     @Test
-//     void existsByBadgeId_WithNonExistingUser_ShouldReturnFalse() {
-//         // Act
-//         boolean exists = userRepository.existsByBadgeId("nonexistent");
+        // Assert
+        assertTrue(exists);
+    }
 
-//         // Assert
-//         assertFalse(exists);
-//     }
+    @Test
+    void existsByBadgeId_WithNonExistingUser_ShouldReturnFalse() {
+        // Act
+        boolean exists = userRepository.existsByBadgeId("nonexistent");
 
-//     @Test
-//     void existsByUsername_WithExistingUser_ShouldReturnTrue() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+        // Assert
+        assertFalse(exists);
+    }
 
-//         // Act
-//         boolean exists = userRepository.existsByUsername(user.getUsername());
+    @Test
+    void existsByUsername_WithExistingUser_ShouldReturnTrue() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(exists);
-//     }
+        // Act
+        boolean exists = userRepository.existsByUsername(user.getUsername());
 
-//     @Test
-//     void existsByUsername_WithNonExistingUser_ShouldReturnFalse() {
-//         // Act
-//         boolean exists = userRepository.existsByUsername("nonexistent");
+        // Assert
+        assertTrue(exists);
+    }
 
-//         // Assert
-//         assertFalse(exists);
-//     }
+    @Test
+    void existsByUsername_WithNonExistingUser_ShouldReturnFalse() {
+        // Act
+        boolean exists = userRepository.existsByUsername("nonexistent");
 
-//     @Test
-//     void existsByEmail_WithExistingUser_ShouldReturnTrue() {
-//         // Arrange
-//         User user = User.builder()
-//                 .badgeId("123")
-//                 .username("testuser")
-//                 .email("test@example.com")
-//                 .password("password")
-//                 .build();
-//         entityManager.persist(user);
-//         entityManager.flush();
+        // Assert
+        assertFalse(exists);
+    }
 
-//         // Act
-//         boolean exists = userRepository.existsByEmail(user.getEmail());
+    @Test
+    void existsByEmail_WithExistingUser_ShouldReturnTrue() {
+        // Arrange
+        User user = User.builder()
+                .badgeId("123")
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .build();
+        userRepository.save(user);
 
-//         // Assert
-//         assertTrue(exists);
-//     }
+        // Act
+        boolean exists = userRepository.existsByEmail(user.getEmail());
 
-//     @Test
-//     void existsByEmail_WithNonExistingUser_ShouldReturnFalse() {
-//         // Act
-//         boolean exists = userRepository.existsByEmail("nonexistent@example.com");
+        // Assert
+        assertTrue(exists);
+    }
 
-//         // Assert
-//         assertFalse(exists);
-//     }
-// } 
+    @Test
+    void existsByEmail_WithNonExistingUser_ShouldReturnFalse() {
+        // Act
+        boolean exists = userRepository.existsByEmail("nonexistent@example.com");
+
+        // Assert
+        assertFalse(exists);
+    }
+} 
