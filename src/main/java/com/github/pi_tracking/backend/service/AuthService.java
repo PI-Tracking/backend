@@ -92,9 +92,10 @@ public class AuthService {
         if (user == null ) {
             throw new IllegalArgumentException("Something went wrong!");
         }
-        user.setPassword(StringUtils.generateRandomString(16));
+        String newPassword = StringUtils.generateRandomString(16);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return new LoginDTO(user.getUsername(), user.getPassword());
+        return new LoginDTO(user.getUsername(), newPassword);
     }
 
 }

@@ -2,6 +2,7 @@ package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.ChangePasswordDTO;
 import com.github.pi_tracking.backend.dto.LoginDTO;
+import com.github.pi_tracking.backend.dto.ResetDTO;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.AuthService;
 import com.github.pi_tracking.backend.service.EmailService;
@@ -73,13 +74,13 @@ public class LoginController {
     }
 
     @PatchMapping("/resetPassword")
-    public ResponseEntity<String> resetPassword(@RequestBody @Valid String email) {
-        LoginDTO login = authService.resetPassword(email);
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetDTO dto) {
+        LoginDTO login = authService.resetPassword(dto.getEmail());
         if (login == null) {
             return new ResponseEntity<>("Not working",HttpStatus.BAD_REQUEST);
         }
         try {
-            emailService.sendEmail(email, "Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
+            emailService.sendEmail(dto.getEmail(), "Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
             return new ResponseEntity<>("New credentials have been sent successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.toString(), HttpStatus.NOT_FOUND);
