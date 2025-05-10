@@ -2,8 +2,10 @@ package com.github.pi_tracking.backend.controller;
 
 import com.github.pi_tracking.backend.dto.ChangePasswordDTO;
 import com.github.pi_tracking.backend.dto.LoginDTO;
+import com.github.pi_tracking.backend.dto.ResetDTO;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.AuthService;
+import com.github.pi_tracking.backend.service.EmailService;
 import com.github.pi_tracking.backend.service.JWTService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -18,12 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     private final AuthService authService;
-
     private final JWTService jwtService;
+    private final EmailService emailService;
 
-    public LoginController(AuthService authService, JWTService jwtService) {
+    public LoginController(AuthService authService, JWTService jwtService, EmailService emailService) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
 
     @PostMapping("/login")
@@ -69,5 +72,20 @@ public class LoginController {
         }
         return new ResponseEntity<>("Password changed successfully", HttpStatus.OK);
     }
+
+    @PatchMapping("/resetPassword")
+    public ResponseEntity<String> resetPassword(@RequestBody @Valid ResetDTO dto) {
+        LoginDTO login = authService.resetPassword(dto.getEmail());
+        if (login == null) {
+            return new ResponseEntity<>("Not working",HttpStatus.BAD_REQUEST);
+        }
+        try {
+            emailService.sendEmail(dto.getEmail(), "Credenciais de Acesso", "Username: " + login.getUsername() + "\nPassword: " + login.getPassword());
+            return new ResponseEntity<>("New credentials have been sent successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.toString(), HttpStatus.NOT_FOUND);
+        }
+    }
+
 
 }

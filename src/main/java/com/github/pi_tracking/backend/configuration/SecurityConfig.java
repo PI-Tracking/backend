@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/login", "/api/v1/changePassword").permitAll()
+                        .requestMatchers("/api/v1/login", "/api/v1/resetPassword").permitAll()
                         .requestMatchers( "/api/v1/docs/**", "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
