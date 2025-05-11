@@ -1,0 +1,8 @@
+docker run --name postgres -e POSTGRES_DB=tracking_dev -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:latest
+
+docker run --name mongodb -p 27017:27017 -d mongo:latest
+
+docker run --name rabbitmq -p 5672:5672 -p 15672:15672 -d rabbitmq:3-management
+
+docker build -t backend .
+docker run --name backend --link postgres --link mongodb --link rabbitmq -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/tracking_dev -e SPRING_DATASOURCE_USERNAME=postgres -e SPRING_DATASOURCE_PASSWORD=postgres -e SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/tracking_dev -e SPRING_RABBITMQ_HOST=rabbitmq -p 8080:8080 -d backend
