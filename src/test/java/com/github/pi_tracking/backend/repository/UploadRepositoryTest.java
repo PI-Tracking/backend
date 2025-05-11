@@ -59,7 +59,7 @@ class UploadRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")
@@ -97,7 +97,7 @@ class UploadRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")
@@ -146,7 +146,7 @@ class UploadRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")

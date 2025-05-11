@@ -51,7 +51,7 @@ class ReportRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")
@@ -76,7 +76,7 @@ class ReportRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")
@@ -112,7 +112,7 @@ class ReportRepositoryTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
-        userRepository.save(creator);
+        creator = userRepository.save(creator);
 
         Report report = Report.builder()
                 .name("Test Report")
