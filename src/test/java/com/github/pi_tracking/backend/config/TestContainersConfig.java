@@ -8,13 +8,16 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Duration;
 
 @TestConfiguration
 @Testcontainers
 public class TestContainersConfig {
-
+        
     private static final Logger logger = LoggerFactory.getLogger(TestContainersConfig.class);
 
     @Container
@@ -24,24 +27,26 @@ public class TestContainersConfig {
             .withPassword("test");
 
     @Container
-    static final MongoDBContainer mongo = new MongoDBContainer("mongo:6.0.2")
-            .withExposedPorts(27017);
+    public static final MongoDBContainer mongo = new MongoDBContainer("mongo:latest")
+            .withExposedPorts(27017)
+            .waitingFor(Wait.forListeningPort())
+            .withStartupTimeout(Duration.ofSeconds(60));
 
-    @Container
-    static final GenericContainer<?> minio = new GenericContainer<>("minio/minio:latest")
-            .withExposedPorts(9000, 9001)
-            .withEnv("MINIO_ROOT_USER", "minioadmin")
-            .withEnv("MINIO_ROOT_PASSWORD", "minioadmin")
-            .withCommand("server /data --console-address ':9001'");
+    // @Container
+    // static final GenericContainer<?> minio = new GenericContainer<>("minio/minio:latest")
+    //         .withExposedPorts(9000, 9001)
+    //         .withEnv("MINIO_ROOT_USER", "tracking")  // Matching your prod config
+    //         .withEnv("MINIO_ROOT_PASSWORD", "password")  // Matching your prod config
+    //         .withCommand("server /data --console-address ':9001'")
+    //         .waitingFor(Wait.forLogMessage(".*MinIO Object Storage Server.*", 1))
+    //         .withStartupTimeout(Duration.ofSeconds(30));
 
     static {
         try {
             postgres.start();
             mongo.start();
-            minio.start();
-            String mongoUri = String.format("mongodb://%s:%d", mongo.getHost(), mongo.getMappedPort(27017));
-            logger.info("MongoDB URI: {}", mongoUri);
-            Thread.sleep(5000); // Add a delay to ensure MongoDB is ready
+            logger.info("Started PostgreSQL container at: {}", postgres.getJdbcUrl());
+            logger.info("Started MongoDB container at: mongodb://{}:{}", mongo.getHost(), mongo.getMappedPort(27017));
         } catch (Exception e) {
             logger.error("Failed to start test containers", e);
             throw new RuntimeException("Failed to start test containers", e);
@@ -50,22 +55,40 @@ public class TestContainersConfig {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
+        // PostgreSQL configuration
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.datasource.hikari.max-lifetime", () -> 30000); // 30 seconds
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.datasource.hikari.max-lifetime", () -> 30000);
         
-        String mongoUri = String.format("mongodb://%s:%d", mongo.getHost(), mongo.getMappedPort(27017));
+        // MongoDB configuration
+        String mongoUri = String.format("mongodb://%s:%d/testdb", mongo.getHost(), mongo.getMappedPort(27017));
         logger.info("Configuring MongoDB URI: {}", mongoUri);
         registry.add("spring.data.mongodb.uri", () -> mongoUri);
         registry.add("spring.data.mongodb.auto-index-creation", () -> true);
 
-        // Configure MinIO properties
-        String minioUrl = String.format("http://%s:%d", minio.getHost(), minio.getMappedPort(9000));
-        logger.info("Configuring MinIO URL: {}", minioUrl);
-        registry.add("minio.url", () -> minioUrl);
-        registry.add("minio.access.name", () -> "minioadmin");
-        registry.add("minio.access.secret", () -> "minioadmin");
-        registry.add("minio.bucket.name", () -> "videos");
+        // MinIO configuration
+        // String minioUrl = String.format("http://%s:%d", minio.getHost(), minio.getMappedPort(9000));
+        // logger.info("MinIO URL: {}", minioUrl);
+        // registry.add("minio.url", () -> minioUrl);
+        // registry.add("minio.access.name", () -> "tracking");
+        // registry.add("minio.access.secret", () -> "password");
+        // registry.add("minio.bucket.name", () -> "videos");
+        
+        // Add serverUrl for your application
+        registry.add("serverUrl", () -> "http://localhost:8080");
     }
-} 
+
+    public static MongoDBContainer getMongo() {
+        return mongo;
+    }
+    
+    public static PostgreSQLContainer<?> getPostgres() {
+        return postgres;
+    }
+    
+    // public static GenericContainer<?> getMinio() {
+    //     return minio;
+    // }
+}   
