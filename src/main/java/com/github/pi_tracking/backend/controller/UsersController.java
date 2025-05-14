@@ -7,6 +7,7 @@ import com.github.pi_tracking.backend.service.AuthService;
 import com.github.pi_tracking.backend.service.EmailService;
 import com.github.pi_tracking.backend.service.UsersService;
 import jakarta.validation.Valid;
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,7 +52,7 @@ public class UsersController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) auth.getPrincipal();
 
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return new ResponseEntity<>(usersService.getUserByBadgeId(user.getBadgeId()), HttpStatus.OK);
     }
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
