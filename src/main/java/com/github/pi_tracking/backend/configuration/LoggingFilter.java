@@ -5,11 +5,9 @@ import com.github.pi_tracking.backend.service.LogsService;
 import com.github.pi_tracking.backend.service.UsersService;
 import com.github.pi_tracking.backend.utils.Actions;
 import com.github.pi_tracking.backend.entity.User;
-import com.github.pi_tracking.backend.entity.Log;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.WebUtils;
-
 
 import org.springframework.core.annotation.Order;
 import jakarta.servlet.FilterChain;
@@ -22,7 +20,6 @@ import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 
 @Component
 @Order(2)
@@ -42,24 +39,20 @@ public class LoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Obter o cookie de accessToken
+        // Obter cookie de accessToken
         Cookie cookie = WebUtils.getCookie(request, "accessToken");
 
         if (cookie != null) {
             final String jwt = cookie.getValue();
-            String username = jwtService.extractUsername(jwt); // Extrair o username do JWT
+            String username = jwtService.extractUsername(jwt); 
 
-            User user = usersService.getUserByUsername(username);  // Buscar o user na base de dados
-            
+            User user = usersService.getUserByUsername(username);  
             if (user != null) {
                 String userBadge = user.getBadgeId();
+                Actions action = determineAction(request, null); 
 
-                List<Log> userLogs = logsService.getLogsByUserBadge(userBadge);
-                if (!userLogs.isEmpty()) {
-                    Log lastLog = userLogs.get(userLogs.size() - 1);
-                    Actions lastAction = lastLog.getAction();
-
-                    logsService.saveActionLog(userBadge, username, lastAction);
+                if (action != null) {
+                    logsService.saveActionLog(userBadge, username, action);
                 }
             }
         }
@@ -69,15 +62,14 @@ public class LoggingFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, responseWrapper);
 
         String responseBody = new String(responseWrapper.getData());
-        Actions action = determineAction(request, responseBody);
+        Actions responseAction = determineAction(request, responseBody);
 
-        if (action != null) {
-            logsService.saveActionLog(getUserBadge(request), getUsername(request), action);
+        if (responseAction != null) {
+            logsService.saveActionLog(getUserBadge(request), getUsername(request), responseAction);
         }
 
         response.getOutputStream().write(responseWrapper.getData());
     }
-    
 
     private String getUsername(HttpServletRequest request) {
         Cookie cookie = WebUtils.getCookie(request, "accessToken");
@@ -108,17 +100,24 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
         
         else if (path.contains("/api/v1/analysis")) {
-            if (responseBody.contains("minio")) {
+            // Se houver links para MinIO na resposta, regista a ação de upload de vídeo
+            if (responseBody != null && responseBody.contains("minio")) {
                 return Actions.Upload_video; 
+            }
+
+            // Verifica conforme o parâmetro "selected" na requisição
+            if (request.getParameter("selected") == null) {
+                return Actions.Start_detection;  
+            } else {
+                return Actions.Select_Suspect;  
+            }
         }
-    }
 
         else if (path.contains("/api/v1/userlogs")) {
             return Actions.Access_logs;
         }
 
-        return null;
-
+        return null; 
     }
 }
 
