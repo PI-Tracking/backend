@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +45,14 @@ public class UsersController {
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {return ResponseEntity.ok(usersService.getAllUsers());}
+
+    @GetMapping("/self")
+    public ResponseEntity<User> getAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) auth.getPrincipal();
+
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
 
     @PreAuthorize("@usersService.getCurrentUser(authentication).isAdmin()")
     @GetMapping("/{badgeId}")
