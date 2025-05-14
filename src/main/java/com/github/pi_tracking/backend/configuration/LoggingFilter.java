@@ -15,11 +15,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponseWrapper;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 @Component
 @Order(2)
@@ -49,7 +46,7 @@ public class LoggingFilter extends OncePerRequestFilter {
             User user = usersService.getUserByUsername(username);  
             if (user != null) {
                 String userBadge = user.getBadgeId();
-                Actions action = determineAction(request, null); 
+                Actions action = determineAction(request); 
 
                 if (action != null) {
                     logsService.saveActionLog(userBadge, username, action);
@@ -57,87 +54,40 @@ public class LoggingFilter extends OncePerRequestFilter {
             }
         }
 
-        // ResponseWrapper para intercetar a resposta
-        ResponseWrapper responseWrapper = new ResponseWrapper(response);
-        filterChain.doFilter(request, responseWrapper);
-
-        String responseBody = new String(responseWrapper.getData());
-        Actions responseAction = determineAction(request, responseBody);
-
-        if (responseAction != null) {
-            logsService.saveActionLog(getUserBadge(request), getUsername(request), responseAction);
-        }
-
-        response.getOutputStream().write(responseWrapper.getData());
+        filterChain.doFilter(request, response);
     }
 
-    private String getUsername(HttpServletRequest request) {
-        Cookie cookie = WebUtils.getCookie(request, "accessToken");
-        if (cookie != null) {
-            final String jwt = cookie.getValue();
-            return jwtService.extractUsername(jwt); 
-        }
-        return "Unknown User"; 
-    }
-
-    private String getUserBadge(HttpServletRequest request) {
-        return getUsername(request);
-    }
-
-    @Override
-    public void destroy() {
-    }
-
-    private Actions determineAction(HttpServletRequest request, String responseBody) {
+    private Actions determineAction(HttpServletRequest request) {
         String path = request.getRequestURI();
 
         if (path.contains("/api/v1/login")) {
             return Actions.Login;
         }
         
-        else if (path.contains("/api/v1/logout")) {
+        if (path.contains("/api/v1/logout")) {
             return Actions.Logout;
         }
         
-        else if (path.contains("/api/v1/analysis")) {
-            // Se houver links para MinIO na resposta, regista a ação de upload de vídeo
-            if (responseBody != null && responseBody.contains("minio")) {
+        if (path.contains("/api/v1/analysis")) {
+            // Se for um pedido GET, regista a ação de upload de video
+            if (request.getMethod().equals("GET")) {
                 return Actions.Upload_video; 
             }
 
-            // Verifica conforme o parâmetro "selected" na requisição
+            // Se for um pedido sem suspeito selecionado, regista ação de start detection
             if (request.getParameter("selected") == null) {
-                return Actions.Start_detection;  
-            } else {
-                return Actions.Select_Suspect;  
+                return Actions.Start_detection;
             }
+            
+            // Se tiver suspeito selecionado, regista açao de select suspect
+            return Actions.Select_Suspect;  
         }
 
-        else if (path.contains("/api/v1/userlogs")) {
+        if (path.contains("/api/v1/userlogs")) {
             return Actions.Access_logs;
         }
 
-        return null; 
-    }
-}
-
-class ResponseWrapper extends HttpServletResponseWrapper {
-
-    private ByteArrayOutputStream outputStream;
-    private PrintWriter writer;
-
-    public ResponseWrapper(HttpServletResponse response) throws IOException {
-        super(response);
-        outputStream = new ByteArrayOutputStream();
-        writer = new PrintWriter(outputStream);
-    }
-
-    @Override
-    public PrintWriter getWriter() {
-        return writer;
-    }
-
-    public byte[] getData() {
-        return outputStream.toByteArray();
+        // Ação sem log
+        return null;
     }
 }
