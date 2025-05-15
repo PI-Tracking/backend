@@ -1,5 +1,6 @@
 package com.github.pi_tracking.backend.dto;
 
+import com.github.pi_tracking.backend.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,4 +17,5 @@ public class ReportResponseDTO {
     private UUID id;
     private String name;
     private List<UploadDTO> uploads;
+    private User creator;
 }
