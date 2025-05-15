@@ -1,6 +1,5 @@
 package com.github.pi_tracking.backend.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +32,6 @@ public class Report {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
     private User creator;
 
     @CreationTimestamp

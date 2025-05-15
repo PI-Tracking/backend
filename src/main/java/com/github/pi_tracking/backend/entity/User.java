@@ -40,7 +40,7 @@ public class User implements UserDetails {
     private boolean active = true;
 
     @OneToMany(mappedBy = "creator", cascade = CascadeType.DETACH)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Report> reports;
 
     @Override
