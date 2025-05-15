@@ -114,6 +114,7 @@ public class ReportService {
                 .id(report.getId())
                 .name(report.getName())
                 .uploads(uploadDTOs)
+                .creator(report.getCreator())
                 .build();
     }
 
@@ -150,6 +151,7 @@ public class ReportService {
                 .id(report.getId())
                 .name(report.getName())
                 .uploads(uploads)
+                .creator(report.getCreator())
                 .build();
     }
 
