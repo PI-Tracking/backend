@@ -33,6 +33,6 @@ public class Log {
     private Actions action;
     private UUID logAccessed;
 
-    @CreatedDate
+    
     private LocalDateTime timestamp;  
 }

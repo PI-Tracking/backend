@@ -3,6 +3,8 @@ package com.github.pi_tracking.backend.service;
 import com.github.pi_tracking.backend.repository.ActionLogsRepository;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import com.github.pi_tracking.backend.entity.Log;
@@ -52,6 +54,7 @@ public class LogsService {
                 .userBadge(userBadge)
                 .userName(userName)
                 .action(Actions.Login)
+                .timestamp(LocalDateTime.now())
                 .build();
 
         actionLogsRepository.save(log);
@@ -64,6 +67,7 @@ public class LogsService {
                 .userBadge(userBadge)
                 .userName(userName)
                 .action(Actions.Logout)
+                .timestamp(LocalDateTime.now())
                 .build();
         actionLogsRepository.save(log);
     }
@@ -73,6 +77,7 @@ public class LogsService {
                 .userBadge(userBadge)
                 .userName(userName)
                 .action(action)
+                .timestamp(LocalDateTime.now())
                 .build();
         actionLogsRepository.save(log);
     }
@@ -83,6 +88,7 @@ public class LogsService {
                 .userName(userName)
                 .action(Actions.Access_logs)
                 .logAccessed(logAccessed)
+                .timestamp(LocalDateTime.now())
                 .build();
         actionLogsRepository.save(log);
     }
