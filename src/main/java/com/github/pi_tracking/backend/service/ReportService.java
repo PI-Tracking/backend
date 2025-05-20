@@ -69,7 +69,7 @@ public class ReportService {
         }
     }
 
-    public ReportResponseDTO create(String name, List<UUID> cameras, User creator) throws Exception {
+    public ReportResponseDTO create(String name, List<UUID> cameras, User creator, Boolean hasSuspect) throws Exception {
         Report report = Report.builder()
                 .creator(creator)
                 .name(name)

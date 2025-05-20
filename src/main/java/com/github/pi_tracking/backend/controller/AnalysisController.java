@@ -77,4 +77,14 @@ public class AnalysisController {
         }
         return new ResponseEntity<>(timeIntervals, HttpStatus.OK);
     }
+
+    @PostMapping("/face-detection")
+    public ResponseEntity<NewAnalysisDTO> startFaceDetection(@RequestBody List<String> camerasId) {
+        String analysisId = UUID.randomUUID().toString();
+        rabbitMQProducer.startFaceDetection(camerasId, analysisId);
+        
+        NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+    
 }

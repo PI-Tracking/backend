@@ -20,4 +20,7 @@ public class NewReportDTO {
     @NotNull
     @NotEmpty
     private List<UUID> cameras;
+
+    @NotNull
+    private Boolean hasSuspect;
 }

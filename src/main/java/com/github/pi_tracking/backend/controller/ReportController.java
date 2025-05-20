@@ -30,7 +30,7 @@ public class ReportController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User issuer = (User) auth.getPrincipal();
 
-        ReportResponseDTO report = reportService.create(dto.getName(), dto.getCameras(), issuer);
+        ReportResponseDTO report = reportService.create(dto.getName(), dto.getCameras(), issuer, dto.getHasSuspect());
 
         return new ResponseEntity<>(report, HttpStatus.CREATED);
     }

@@ -41,4 +41,13 @@ public class RabbitMQProducer {
         String message = "Stop:" + analysisId;
         rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
     }
+
+    public void startFaceDetection(List<String> cameras, String analysisId) {
+        String message = "Start:" + analysisId;
+        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+    }
+    public void stopFaceDetection(String analysisId) {
+        String message = "Stop:" + analysisId;
+        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+    }
 }
