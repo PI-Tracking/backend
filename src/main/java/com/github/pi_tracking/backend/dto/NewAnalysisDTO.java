@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NewAnalysisDTO {
+public class    NewAnalysisDTO {
     private String analysisId;
 }

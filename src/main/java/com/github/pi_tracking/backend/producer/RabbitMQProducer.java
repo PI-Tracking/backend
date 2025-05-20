@@ -42,12 +42,23 @@ public class RabbitMQProducer {
         rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
     }
 
-    public void startFaceDetection(List<String> cameras, String analysisId) {
-        String message = "Start:" + analysisId;
-        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+    // To send the face directly to backend and analyze the video and see if the corresponding face is there
+    public void sendFaceDetection(String analysisId, String reportId) {
+        JsonObject json = new JsonObject();
+        json.addProperty("analysisId", analysisId);
+        json.addProperty("reportId", reportId);
+        json.addProperty("faceId", true);
+
+        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
     }
-    public void stopFaceDetection(String analysisId) {
-        String message = "Stop:" + analysisId;
-        rabbitTemplate.convertAndSend(LIVE_ANALYSIS_QUEUE, message);
+
+
+    // When I upload the reference image to detect the face I need to see if the image itself has a face in it
+    public void hasFaceDetection(String analysisId, String reportId) {
+        // Pass image directly as binary
+        JsonObject json = new JsonObject();
+        json.addProperty("faceId", false);
+
+        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
     }
 }

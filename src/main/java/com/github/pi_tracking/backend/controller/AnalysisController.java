@@ -10,6 +10,7 @@ import com.github.pi_tracking.backend.producer.RabbitMQProducer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -79,12 +80,28 @@ public class AnalysisController {
     }
 
     @PostMapping("/face-detection")
-    public ResponseEntity<NewAnalysisDTO> startFaceDetection(@RequestBody List<String> camerasId) {
+    public ResponseEntity<NewAnalysisDTO> startFaceDetection(@PathVariable UUID reportId) {
         String analysisId = UUID.randomUUID().toString();
-        rabbitMQProducer.startFaceDetection(camerasId, analysisId);
+        rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString());
         
         NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+    
+    // @PostMapping("/has-face")
+    // public ResponseEntity<String> handleImageUpload(@RequestParam("file") MultipartFile file) {
+    //     if (file.isEmpty()) {
+    //         return ResponseEntity.badRequest().body("File is empty");
+    //     }
+
+    //     try {
+    //         byte[] imageData = file.getBytes();
+    //         // Process the image data as needed
+
+    //         return ResponseEntity.ok("Image uploaded successfully: " + file.getOriginalFilename());
+    //     } catch (IOException e) {
+    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process image");
+    //     }
+    // }
     
 }
