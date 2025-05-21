@@ -91,6 +91,27 @@ public class AnalysisController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     
+    
+    @PostMapping("/has-face")
+    public ResponseEntity<String> hasFace(@RequestParam("file") MultipartFile file,
+                                          @RequestParam("reportId") UUID reportId) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("File is empty");
+        }
+    
+        String analysisId = UUID.randomUUID().toString(); // Generate a unique ID
+    
+        try {
+            rabbitMQProducer.hasFaceDetection(analysisId, reportId.toString(), file);
+            return ResponseEntity.ok("Image sent for face validation with analysisId: " + analysisId);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process image");
+        }
+    }
+    
+
+
+    
     // @PostMapping("/has-face")
     // public ResponseEntity<String> handleImageUpload(@RequestParam("file") MultipartFile file) {
     //     if (file.isEmpty()) {

@@ -1,9 +1,13 @@
 package com.github.pi_tracking.backend.producer;
 
 import com.github.pi_tracking.backend.dto.SelectedDTO;
+
+import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
@@ -61,4 +65,26 @@ public class RabbitMQProducer {
 
         rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
     }
+
+    public void hasFaceDetection(String analysisId, String reportId, MultipartFile imageFile) {
+    try {
+        // Read and encode image to Base64
+        byte[] imageBytes = imageFile.getBytes();
+        String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                    
+        // Prepare JSON message
+        JsonObject json = new JsonObject();
+        json.addProperty("faceId", false); // just metadata
+        json.addProperty("analysisId", analysisId);
+        json.addProperty("reportId", reportId);
+        json.addProperty("image", base64Image); // embed the image
+
+        // Send message
+        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
+
+    } catch (IOException e) {
+        // Handle error properly (optional: log it or rethrow)
+        throw new RuntimeException("Failed to process and send image", e);
+    }
+}
 }
