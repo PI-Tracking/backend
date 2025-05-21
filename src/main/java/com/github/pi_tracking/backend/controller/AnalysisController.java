@@ -9,9 +9,11 @@ import com.github.pi_tracking.backend.service.AnalysisService;
 import com.github.pi_tracking.backend.producer.RabbitMQProducer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +34,8 @@ public class AnalysisController {
     @PostMapping("/{reportId}")
     public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
-        @RequestBody(required = false) SelectedDTO selected
+        @RequestPart(required = false, name = "selectedSuspect") SelectedDTO selected,
+        @RequestPart(required = false, name = "faceImage") MultipartFile             faceImage
     ) {
         if (!reportService.reportExistsById(reportId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
