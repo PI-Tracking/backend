@@ -32,7 +32,7 @@ public class AnalysisController {
     @PostMapping("/{reportId}")
     public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
-        @RequestBody SelectedDTO selected
+        @RequestBody(required = false) SelectedDTO selected
     ) {
         if (!reportService.reportExistsById(reportId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
