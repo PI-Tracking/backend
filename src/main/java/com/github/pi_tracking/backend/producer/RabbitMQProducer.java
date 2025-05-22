@@ -2,13 +2,13 @@ package com.github.pi_tracking.backend.producer;
 
 import com.github.pi_tracking.backend.dto.SelectedDTO;
 
-import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+
 import com.google.gson.JsonObject;
 import com.google.gson.Gson;
 
@@ -47,44 +47,16 @@ public class RabbitMQProducer {
     }
 
     // To send the face directly to backend and analyze the video and see if the corresponding face is there
-    public void sendFaceDetection(String analysisId, String reportId) {
+    public void sendFaceDetection(String analysisId, String reportId, MultipartFile faceImage) {
         JsonObject json = new JsonObject();
         json.addProperty("analysisId", analysisId);
         json.addProperty("reportId", reportId);
-        json.addProperty("faceId", true);
+        try {
+            json.addProperty("faceId", Base64.getEncoder().encodeToString(faceImage.getBytes()));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Uploaded image is not valid!");
+        }
 
         rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
     }
-
-
-    // When I upload the reference image to detect the face I need to see if the image itself has a face in it
-    public void hasFaceDetection(String analysisId, String reportId) {
-        // Pass image directly as binary
-        JsonObject json = new JsonObject();
-        json.addProperty("faceId", false);
-
-        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
-    }
-
-    public void hasFaceDetection(String analysisId, String reportId, MultipartFile imageFile) {
-    try {
-        // Read and encode image to Base64
-        byte[] imageBytes = imageFile.getBytes();
-        String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-                    
-        // Prepare JSON message
-        JsonObject json = new JsonObject();
-        json.addProperty("faceId", false); // just metadata
-        json.addProperty("analysisId", analysisId);
-        json.addProperty("reportId", reportId);
-        json.addProperty("image", base64Image); // embed the image
-
-        // Send message
-        rabbitTemplate.convertAndSend(REQUESTS_QUEUE, json.toString());
-
-    } catch (IOException e) {
-        // Handle error properly (optional: log it or rethrow)
-        throw new RuntimeException("Failed to process and send image", e);
-    }
-}
 }

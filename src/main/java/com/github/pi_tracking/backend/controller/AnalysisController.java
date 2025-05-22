@@ -9,11 +9,9 @@ import com.github.pi_tracking.backend.service.AnalysisService;
 import com.github.pi_tracking.backend.producer.RabbitMQProducer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,8 +32,7 @@ public class AnalysisController {
     @PostMapping("/{reportId}")
     public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
-        @RequestPart(required = false, name = "selectedSuspect") SelectedDTO selected,
-        @RequestPart(required = false, name = "faceImage") MultipartFile             faceImage
+        @RequestBody SelectedDTO selected
     ) {
         if (!reportService.reportExistsById(reportId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -82,50 +79,15 @@ public class AnalysisController {
         return new ResponseEntity<>(timeIntervals, HttpStatus.OK);
     }
 
-    @PostMapping("/face-detection")
-    public ResponseEntity<NewAnalysisDTO> startFaceDetection(@PathVariable UUID reportId) {
+    @PostMapping("/face-detection/{reportId}")
+    public ResponseEntity<NewAnalysisDTO> startFaceDetection(
+        @PathVariable UUID reportId,
+        @RequestPart(required = true, name = "faceImage") MultipartFile faceImage
+    ) {
         String analysisId = UUID.randomUUID().toString();
-        rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString());
+        rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString(), faceImage);
         
         NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    
-    
-    @PostMapping("/has-face")
-    public ResponseEntity<String> hasFace(@RequestParam("file") MultipartFile file,
-                                          @RequestParam("reportId") UUID reportId) {
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
-        }
-    
-        String analysisId = UUID.randomUUID().toString(); // Generate a unique ID
-    
-        try {
-            rabbitMQProducer.hasFaceDetection(analysisId, reportId.toString(), file);
-            return ResponseEntity.ok("Image sent for face validation with analysisId: " + analysisId);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process image");
-        }
-    }
-    
-
-
-    
-    // @PostMapping("/has-face")
-    // public ResponseEntity<String> handleImageUpload(@RequestParam("file") MultipartFile file) {
-    //     if (file.isEmpty()) {
-    //         return ResponseEntity.badRequest().body("File is empty");
-    //     }
-
-    //     try {
-    //         byte[] imageData = file.getBytes();
-    //         // Process the image data as needed
-
-    //         return ResponseEntity.ok("Image uploaded successfully: " + file.getOriginalFilename());
-    //     } catch (IOException e) {
-    //         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process image");
-    //     }
-    // }
-    
 }
