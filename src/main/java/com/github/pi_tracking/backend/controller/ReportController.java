@@ -11,6 +11,7 @@ import io.minio.MinioClient;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -85,6 +86,30 @@ public class ReportController {
             
             String base64Image = Base64.getEncoder().encodeToString(outputStream.toByteArray());
             return ResponseEntity.ok(base64Image);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/{reportId}/uploads/{uploadId}/video")
+    public ResponseEntity<byte[]> getVideo(@PathVariable UUID reportId, @PathVariable UUID uploadId) {
+        try {
+            String objectPath = String.format("%s/%s", reportId, uploadId);
+            InputStream stream = minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectPath)
+                    .build());
+            
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(outputStream.toByteArray());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
