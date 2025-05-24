@@ -6,13 +6,19 @@ import com.github.pi_tracking.backend.dto.ReportResponseDTO;
 import com.github.pi_tracking.backend.entity.Report;
 import com.github.pi_tracking.backend.entity.User;
 import com.github.pi_tracking.backend.service.ReportService;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,9 +26,14 @@ import java.util.UUID;
 @RequestMapping("/api/v1/reports")
 public class ReportController {
     private final ReportService reportService;
+    private final MinioClient minioClient;
 
-    public ReportController(ReportService reportService) {
+    @Value("${minio.bucket.name}")
+    private String bucketName;
+
+    public ReportController(ReportService reportService, MinioClient minioClient) {
         this.reportService = reportService;
+        this.minioClient = minioClient;
     }
 
     @PostMapping
@@ -54,5 +65,28 @@ public class ReportController {
     @GetMapping("/{reportId}/analysis")
     public ResponseEntity<ReportAnalysisResponseDTO> getReportAnalysis(@PathVariable UUID reportId) {
         return ResponseEntity.ok(reportService.getAnalysisForReport(reportId));
+    }
+
+    @GetMapping("/{reportId}/suspect-image")
+    public ResponseEntity<String> getSuspectImage(@PathVariable UUID reportId) {
+        try {
+            String objectPath = String.format("%s/suspect-image", reportId);
+            InputStream stream = minioClient.getObject(GetObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectPath)
+                    .build());
+            
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            
+            String base64Image = Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            return ResponseEntity.ok(base64Image);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }
