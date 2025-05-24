@@ -11,9 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Value;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,23 +22,13 @@ public class AnalysisController {
     private final ReportService reportService;
     private final RabbitMQProducer rabbitMQProducer;
     private final AnalysisService analysisService;
-    private final MinioClient minioClient;
 
-    @Value("${minio.bucket.name}")
-    private String bucketName;
-
-    public AnalysisController(
-        ReportService reportService, 
-        RabbitMQProducer rabbitMQProducer, 
-        AnalysisService analysisService,
-        MinioClient minioClient
-    ) {
+    public AnalysisController(ReportService reportService, RabbitMQProducer rabbitMQProducer, AnalysisService analysisService) {
         this.reportService = reportService;
         this.rabbitMQProducer = rabbitMQProducer;
         this.analysisService = analysisService;
-        this.minioClient = minioClient;
     }
-
+    
     @PostMapping("/{reportId}")
     public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
@@ -97,24 +84,18 @@ public class AnalysisController {
         @PathVariable UUID reportId,
         @RequestPart(required = true, name = "faceImage") MultipartFile faceImage
     ) {
-        try {
-            // Store the face image in MinIO
-            String objectPath = String.format("%s/suspect-image", reportId);
-            minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucketName)
-                .object(objectPath)
-                .stream(faceImage.getInputStream(), faceImage.getSize(), -1)
-                .contentType(faceImage.getContentType())
-                .build());
+        String analysisId = UUID.randomUUID().toString();
+        rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString(), faceImage);
+        
+        NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
 
-            // Send to RabbitMQ for analysis
-            String analysisId = UUID.randomUUID().toString();
-            rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString(), faceImage);
-            
-            NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+        // Save suspect image to MinIO using ReportService
+        try {
+            reportService.saveSuspectImage(reportId, faceImage);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
