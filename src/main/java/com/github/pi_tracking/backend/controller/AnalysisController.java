@@ -10,6 +10,7 @@ import com.github.pi_tracking.backend.producer.RabbitMQProducer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,5 +77,17 @@ public class AnalysisController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(timeIntervals, HttpStatus.OK);
+    }
+
+    @PostMapping("/face-detection/{reportId}")
+    public ResponseEntity<NewAnalysisDTO> startFaceDetection(
+        @PathVariable UUID reportId,
+        @RequestPart(required = true, name = "faceImage") MultipartFile faceImage
+    ) {
+        String analysisId = UUID.randomUUID().toString();
+        rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString(), faceImage);
+        
+        NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
