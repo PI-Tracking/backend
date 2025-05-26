@@ -1,30 +1,43 @@
 package com.github.pi_tracking.backend.service;
 
+import com.github.pi_tracking.backend.dto.*;
 import com.github.pi_tracking.backend.entity.DetectionModel;
 import com.github.pi_tracking.backend.repository.AnalysisRepository;
-import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
-import com.github.pi_tracking.backend.dto.CameraTimeIntervalDTO;
-import com.github.pi_tracking.backend.dto.DetectionDTO;
-import com.github.pi_tracking.backend.dto.SegmentationDTO;
 import com.github.pi_tracking.backend.entity.Upload;
 import com.github.pi_tracking.backend.repository.UploadRepository;
 
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.Comparator;
 
+@Slf4j
 @Service
 public class AnalysisService {
 
     private final AnalysisRepository analysisRepository;
     private final UploadRepository uploadRepository;
+    private final RestTemplate restTemplate;
 
-    public AnalysisService(AnalysisRepository analysisRepository, UploadRepository uploadRepository) {
+    @Value("${worker.host}")
+    private String workerHost;
+
+    @Value("${worker.port}")
+    private String workerPort;
+
+    public AnalysisService(AnalysisRepository analysisRepository, UploadRepository uploadRepository, RestTemplate restTemplate) {
         this.analysisRepository = analysisRepository;
         this.uploadRepository = uploadRepository;
+        this.restTemplate = restTemplate;
     }
 
     public List<CameraTimeIntervalDTO> getCameraTimeIntervalsByAnalysisId(String analysisId) {
@@ -72,7 +85,26 @@ public class AnalysisService {
                 .detections(detections)
                 .segmentations(segmentations)
                 .build();
-}
+    }
+
+    public SearchPersonResponseDTO searchPersonInFrame(SearchPersonRequestDTO dto) {
+        String url = String.format("%s:%s/api/v1/search-person/", workerHost, workerPort);
+
+        log.info("Making an HTTP request to the worker API for report {}, video {} at timestamp {}",
+                dto.getReportId(), dto.getVideoId(), dto.getTimestamp());
+
+        JSONObject json = new JSONObject();
+        json.put("report_id", dto.getReportId());
+        json.put("video_id", dto.getVideoId());
+        json.put("timestamp", dto.getTimestamp());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<>(json.toString(), headers);
+
+        return restTemplate.postForObject(url, request, SearchPersonResponseDTO.class);
+    }
 
     private List<DetectionDTO> getDetectionsByAnalysisId(String analysisId) {
         List<DetectionModel> detectionModels = analysisRepository.findByAnalysisIdAndDetectionBoxIsNotNull(analysisId);

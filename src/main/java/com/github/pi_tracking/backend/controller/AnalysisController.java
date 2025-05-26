@@ -1,12 +1,10 @@
 package com.github.pi_tracking.backend.controller;
 
-import com.github.pi_tracking.backend.dto.AnalysisResponseDTO;
-import com.github.pi_tracking.backend.dto.CameraTimeIntervalDTO;
-import com.github.pi_tracking.backend.dto.NewAnalysisDTO;
-import com.github.pi_tracking.backend.dto.SelectedDTO;
+import com.github.pi_tracking.backend.dto.*;
 import com.github.pi_tracking.backend.service.ReportService;
 import com.github.pi_tracking.backend.service.AnalysisService;
 import com.github.pi_tracking.backend.producer.RabbitMQProducer;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -89,5 +87,10 @@ public class AnalysisController {
         
         NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/search-person")
+    public SearchPersonResponseDTO searchPerson(@RequestBody @Valid SearchPersonRequestDTO dto) {
+        return analysisService.searchPersonInFrame(dto);
     }
 }
