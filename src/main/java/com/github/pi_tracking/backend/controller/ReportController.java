@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -66,6 +67,19 @@ public class ReportController {
     @GetMapping("/{reportId}/analysis")
     public ResponseEntity<ReportAnalysisResponseDTO> getReportAnalysis(@PathVariable UUID reportId) {
         return ResponseEntity.ok(reportService.getAnalysisForReport(reportId));
+    }
+
+    @PostMapping("/{reportId}/suspect-image")
+    public ResponseEntity<Void> saveSuspectImage(
+        @PathVariable UUID reportId,
+        @RequestPart(required = true, name = "suspectImage") MultipartFile suspectImage
+    ) {
+        try {
+            reportService.saveSuspectImage(reportId, suspectImage);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/{reportId}/suspect-image")
