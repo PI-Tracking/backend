@@ -151,6 +151,7 @@ public class ReportService {
                 .id(report.getId())
                 .name(report.getName())
                 .uploads(uploads)
+                .createdAt(report.getCreatedAt())
                 .creator(report.getCreator())
                 .build();
     }
