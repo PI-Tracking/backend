@@ -19,6 +19,10 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.springframework.web.multipart.MultipartFile;
+
+
+
 @Service
 @Slf4j
 public class ReportService {
@@ -183,4 +187,15 @@ public class ReportService {
 
         return true;
     }
+
+    public void saveSuspectImage(UUID reportId, MultipartFile faceImage) throws Exception {
+        String objectPath = String.format("%s/suspect-image", reportId);
+        minioClient.putObject(PutObjectArgs.builder()
+            .bucket(bucketName)
+            .object(objectPath)
+            .stream(faceImage.getInputStream(), faceImage.getSize(), -1)
+            .contentType(faceImage.getContentType())
+            .build());
+    }   
+    
 }

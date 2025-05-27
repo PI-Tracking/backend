@@ -26,7 +26,7 @@ public class AnalysisController {
         this.rabbitMQProducer = rabbitMQProducer;
         this.analysisService = analysisService;
     }
-
+    
     @PostMapping("/{reportId}")
     public ResponseEntity<NewAnalysisDTO> analyseReport(
         @PathVariable UUID reportId,
@@ -86,6 +86,14 @@ public class AnalysisController {
         rabbitMQProducer.sendFaceDetection(analysisId, reportId.toString(), faceImage);
         
         NewAnalysisDTO response = new NewAnalysisDTO(analysisId);
+
+        // Save suspect image to MinIO using ReportService
+        try {
+            reportService.saveSuspectImage(reportId, faceImage);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
